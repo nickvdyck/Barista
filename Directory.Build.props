@@ -1,0 +1,20 @@
+<Project>
+
+  <PropertyGroup>
+    <Authors>Nick Van Dyck</Authors>
+    <Product>Barista</Product>
+    <Description></Description>
+    <Copyright>Copyright © Nick Van Dyck</Copyright>
+    <NeutralLanguage>en-UK</NeutralLanguage>
+    <RepositoryType>git</RepositoryType>
+    <IsPackable>false</IsPackable>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <LangVersion>Latest</LangVersion>
+
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory).build/obj/$(MSBuildProjectName)</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(MSBuildThisFileDirectory).build/bin/$(MSBuildProjectName)</BaseOutputPath>
+  </PropertyGroup>
+
+</Project>
