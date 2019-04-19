@@ -82,6 +82,9 @@
       <DependentUpon>ViewController.cs</DependentUpon>
     </Compile>
     <Compile Include="Settings.cs" />
+    <Compile Include="TimeAgoUtils.cs" />
+    <Compile Include="StatusBar.cs" />
+    <Compile Include="StatusItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

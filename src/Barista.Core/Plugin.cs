@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -54,19 +56,40 @@ namespace Barista
             }
         }
 
-        internal static string ParseOutput(string output)
+        internal static IReadOnlyList<IReadOnlyList<string>> ParseOutput(string output)
         {
-            var title = output.Split('-', '-', '-').FirstOrDefault();
+            var items = new List<List<string>>();
 
-            title = Regex.Replace(title, @"\t|\n|\r", "");
-            return title;
+            var chunks = output.Split('-', '-', '-');
+            var title = chunks.FirstOrDefault();
+            title = title.Trim();
+
+            items.Add(new List<string> { title });
+
+            foreach (var chunk in chunks.Skip(1))
+            {
+                var lines = chunk.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)
+                                .Where(s => !string.IsNullOrWhiteSpace(s));
+
+                var lineList = new List<string>();
+
+                foreach (var line in lines)
+                {
+                    var parts = line.Split('|');
+                    lineList.Add(parts.FirstOrDefault());
+                }
+
+                items.Add(lineList);
+            }
+
+            return items;
         }
 
         public string Name { get; private set; }
         public string Schedule { get; private set; }
         public PluginType Type { get; private set; }
 
-        public Action<string> OnExecuted { get; set; }
+        public Action<IReadOnlyList<IReadOnlyList<string>>> OnExecuted { get; set; }
 
         private string PhysicalPath { get; set; }
         internal int Interval { get; private set; }
@@ -87,20 +110,20 @@ namespace Barista
 
         internal async Task Execute()
         {
-            string title = string.Empty;
+            IReadOnlyList<IReadOnlyList<string>> items = new List<IReadOnlyList<string>>() { };
             try
             {
                 var output = await ProcessExecutor.Run(PhysicalPath);
                 LastExecution = DateTime.Now;
-                title = ParseOutput(output);
+                items = ParseOutput(output);
             }
             catch (Exception)
             {
-                title = "⚠️";
+                items = new List<List<string>> { new List<string> { "⚠️" } };
             }
             finally
             {
-                OnExecuted?.Invoke(title);
+                OnExecuted?.Invoke(items);
             }
         }
     }
