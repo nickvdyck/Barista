@@ -55,7 +55,7 @@ namespace Barista
 
         private void StartCore()
         {
-            _timer = new Timer(1000)
+            _timer = new Timer(500)
             {
                 AutoReset = true,
                 Enabled = true,
@@ -65,14 +65,9 @@ namespace Barista
             {
                 foreach (var plugin in _plugins)
                 {
-                    if (plugin.LastExecution == DateTime.MinValue)
-                    {
-                        var _ = plugin.Execute();
-                    }
-
                     var offset = DateTime.Now - plugin.LastExecution;
 
-                    if (offset.Seconds > plugin.Interval)
+                    if (offset.TotalSeconds > plugin.Interval)
                     {
                         var _ = plugin.Execute();
                     }

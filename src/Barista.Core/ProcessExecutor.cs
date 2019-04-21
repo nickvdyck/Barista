@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Barista
 {
-    public static class ProcessExecutor
+    internal static class ProcessExecutor
     {
         public static async Task<string> Run(string filename)
         {

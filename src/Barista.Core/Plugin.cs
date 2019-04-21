@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Barista
 {
-    public class Plugin
+    public sealed class Plugin
     {
         internal static PluginType GetPluginType(string extension)
         {
@@ -60,23 +61,22 @@ namespace Barista
         {
             var items = new List<List<string>>();
 
-            var chunks = output.Split('-', '-', '-');
+            var chunks = output.Split(new [] { "---" }, StringSplitOptions.RemoveEmptyEntries);
             var title = chunks.FirstOrDefault();
-            title = title.Trim();
+            title = title.Trim().ReplaceEmoji();
 
             items.Add(new List<string> { title });
 
             foreach (var chunk in chunks.Skip(1))
             {
-                var lines = chunk.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)
-                                .Where(s => !string.IsNullOrWhiteSpace(s));
+                var lines = chunk.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
                 var lineList = new List<string>();
 
                 foreach (var line in lines)
                 {
                     var parts = line.Split('|');
-                    lineList.Add(parts.FirstOrDefault());
+                    lineList.Add(parts.FirstOrDefault().ReplaceEmoji());
                 }
 
                 items.Add(lineList);
@@ -99,13 +99,35 @@ namespace Barista
         {
             PhysicalPath = filePath;
             var fileName = Path.GetFileName(PhysicalPath);
-            var chunks = fileName.Split('.');
+            var (name, schedule, type) = ParseFileName(fileName);
 
-            Name = chunks[0];
-            Schedule = chunks[1];
-            Type = GetPluginType(chunks[2]);
+            Name = name;
+            Schedule = schedule;
+            Type = GetPluginType(type);
 
             Interval = ParseInterval(Schedule);
+        }
+
+        private (string name, string schedule, string type) ParseFileName(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName)) return ("", "", "");
+
+            var chunks = fileName.Split('.');
+
+            if (chunks.Length == 2)
+            {
+                return (chunks[0], "", chunks[1]);
+
+            }
+            else if (chunks.Length == 3)
+            {
+                return (chunks[0], chunks[1], chunks[2]);
+            }
+            else
+            {
+                return (fileName, "", "");
+            }
+
         }
 
         internal async Task Execute()
@@ -117,8 +139,17 @@ namespace Barista
                 LastExecution = DateTime.Now;
                 items = ParseOutput(output);
             }
-            catch (Exception)
+            catch (Win32Exception ex) when (ex.NativeErrorCode == 5)
             {
+                items = new List<List<string>>
+                {
+                    new List<string> { "⚠️" },
+                    new List<string> { "Script is not executable!" }
+                };
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex);
                 items = new List<List<string>> { new List<string> { "⚠️" } };
             }
             finally
