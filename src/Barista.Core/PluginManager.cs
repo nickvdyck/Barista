@@ -48,6 +48,13 @@ namespace Barista
             _timer.Start();
         }
 
+        public void Run(Plugin plugin)
+        {
+            _timer.Stop();
+            var _ = plugin.Execute();
+            _timer.Start();
+        }
+
         public void Start()
         {
             if (_timer == null) StartCore();

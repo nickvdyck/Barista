@@ -42,7 +42,7 @@ namespace Barista.MacOS
 
             foreach (var plugin in _pluginManager.GetPlugins())
             {
-                var item = new StatusItem(plugin, (NSMenuItem)preferences.Copy());
+                var item = new StatusItem(_pluginManager, plugin, (NSMenuItem)preferences.Copy());
 
                 item.Draw();
             }

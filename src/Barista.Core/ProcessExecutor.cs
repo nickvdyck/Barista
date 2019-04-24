@@ -3,13 +3,14 @@ using System.Threading.Tasks;
 
 namespace Barista
 {
-    internal static class ProcessExecutor
+    public static class ProcessExecutor
     {
-        public static async Task<string> Run(string filename)
+        public static async Task<string> Run(string filename, string[] args = default)
         {
             var info = new ProcessStartInfo
             {
                 FileName = filename,
+                Arguments = string.Join(" ", args ?? new string[] { }).Trim(),
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
             };

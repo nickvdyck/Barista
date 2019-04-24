@@ -19,6 +19,8 @@ namespace Barista
                     return PluginType.Shell;
                 case "py":
                     return PluginType.Python;
+                case "js":
+                    return PluginType.JavaScript;
                 default:
                     return PluginType.Unknown;
             }
@@ -57,15 +59,13 @@ namespace Barista
             }
         }
 
-        internal static IReadOnlyList<IReadOnlyList<string>> ParseOutput(string output)
+        internal static List<PluginRecord> ParseOutput(string output)
         {
-            var items = new List<List<string>>();
-
             var chunks = output.Split(new [] { "---" }, StringSplitOptions.RemoveEmptyEntries);
-            var title = chunks.FirstOrDefault();
-            title = title.Trim().ReplaceEmoji();
+            var records = new List<PluginRecord>();
 
-            items.Add(new List<string> { title });
+            var title = chunks.FirstOrDefault().Trim();
+            records.Add(ParseRecord(title));
 
             foreach (var chunk in chunks.Skip(1))
             {
@@ -75,21 +75,51 @@ namespace Barista
 
                 foreach (var line in lines)
                 {
-                    var parts = line.Split('|');
-                    lineList.Add(parts.FirstOrDefault().ReplaceEmoji());
+                    var record = ParseRecord(line);
+                    records.Add(record);
                 }
 
-                items.Add(lineList);
+                records.Add(PluginRecord.Seperator);
             }
 
-            return items;
+            return records;
+        }
+
+        internal static PluginRecord ParseRecord(string line)
+        {
+            var parts = line.Split('|');
+            var title = parts.FirstOrDefault();
+            var attributes = parts.ElementAtOrDefault(1);
+
+            var record = new PluginRecord
+            {
+                Title = title.ReplaceEmoji()
+            };
+
+            if (!string.IsNullOrEmpty(attributes))
+            {
+                var attrs = attributes.Trim().Split(' ');
+
+                foreach (var attribute in attrs)
+                {
+                    var chunks = attribute.Split('=');
+
+                    var key = chunks.FirstOrDefault();
+                    var value = chunks.ElementAtOrDefault(1);
+
+                    record.Settings.Add(key, value);
+                }
+
+            }
+
+            return record;
         }
 
         public string Name { get; private set; }
         public string Schedule { get; private set; }
         public PluginType Type { get; private set; }
 
-        public Action<IReadOnlyList<IReadOnlyList<string>>> OnExecuted { get; set; }
+        public Action<IReadOnlyCollection<PluginRecord>> OnExecuted { get; set; }
 
         private string PhysicalPath { get; set; }
         internal int Interval { get; private set; }
@@ -132,29 +162,29 @@ namespace Barista
 
         internal async Task Execute()
         {
-            IReadOnlyList<IReadOnlyList<string>> items = new List<IReadOnlyList<string>>() { };
+            var result = new List<PluginRecord>();
             try
             {
                 var output = await ProcessExecutor.Run(PhysicalPath);
                 LastExecution = DateTime.Now;
-                items = ParseOutput(output);
+                result = ParseOutput(output);
             }
             catch (Win32Exception ex) when (ex.NativeErrorCode == 5)
             {
-                items = new List<List<string>>
+                result.Add(new PluginRecord { Title = "⚠️" });
+                result.Add(new PluginRecord
                 {
-                    new List<string> { "⚠️" },
-                    new List<string> { "Script is not executable!" }
-                };
+                    Title = "Script is not executable!",
+                });
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex);
-                items = new List<List<string>> { new List<string> { "⚠️" } };
+                result.Add(new PluginRecord { Title = "⚠️" });
             }
             finally
             {
-                OnExecuted?.Invoke(items);
+                OnExecuted?.Invoke(result);
             }
         }
     }

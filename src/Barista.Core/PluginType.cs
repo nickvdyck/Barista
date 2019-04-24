@@ -7,5 +7,6 @@ namespace Barista
         Python,
         Unknown,
         Invalid,
+        JavaScript,
     }
 }

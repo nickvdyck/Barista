@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AppKit;
 using Foundation;
 
@@ -10,6 +11,7 @@ namespace Barista.MacOS
     {
         private readonly NSStatusBar _statusBar;
         private readonly Plugin _plugin;
+        private readonly PluginManager _pluginManager;
         private readonly NSMenuItem _lastUpdated;
         private readonly NSMenuItem _preferences;
 
@@ -17,10 +19,12 @@ namespace Barista.MacOS
         private List<NSMenuItem> _menuItems = new List<NSMenuItem>();
         private bool _isOpen = false;
 
-        public StatusItem(Plugin plugin, NSMenuItem preferences)
+        public StatusItem(PluginManager manger, Plugin plugin, NSMenuItem preferences)
         {
+            _pluginManager = manger;
             _plugin = plugin;
             _preferences = preferences;
+
             _statusBar = NSStatusBar.SystemStatusBar;
             _lastUpdated = new NSMenuItem("LastUpdated")
             {
@@ -28,11 +32,12 @@ namespace Barista.MacOS
             };
         }
 
-        private void OnPluginExecuted(IReadOnlyList<IReadOnlyList<string>> items)
+        private void OnPluginExecuted(IReadOnlyCollection<PluginRecord> result)
         {
+            var first = result.FirstOrDefault();
             InvokeOnMainThread(() =>
             {
-                _mainMenu.Button.Title = items.FirstOrDefault().FirstOrDefault();
+                _mainMenu.Button.Title = first.Title;
                 _lastUpdated.Title = $"Updated {TimeAgoUtils.TimeAgo(_plugin.LastExecution)}";
             });
 
@@ -40,18 +45,31 @@ namespace Barista.MacOS
 
             _menuItems.Clear();
 
-            foreach (var section in items.Skip(1))
+            foreach (var record in result.Skip(1))
             {
-                foreach (var item in section)
+                if (record == PluginRecord.Seperator)
                 {
-                    var menuItem = new NSMenuItem(item)
+                    _menuItems.Add(NSMenuItem.SeparatorItem);
+                }
+                else
+                {
+                    var title = record.Title;
+                    if (record.Title.Length > record.Length)
+                        title = record.Title.Substring(0, record.Length) + " ...";
+
+
+                    var menuItem = new NSMenuItem(record.Title)
                     {
-                        Title = item,
+                        Title = title,
                     };
+
+                    if (record.Refresh || record.BashScript != string.Empty || record.Href != string.Empty)
+                    {
+                        menuItem.Activated += (sender, e) => OnMenuItemClicked(menuItem, record);
+                    }
+
                     _menuItems.Add(menuItem);
                 }
-
-                _menuItems.Add(NSMenuItem.SeparatorItem);
             }
         }
 
@@ -75,6 +93,31 @@ namespace Barista.MacOS
         {
             _mainMenu.Menu.RemoveAllItems();
             _isOpen = false;
+        }
+
+        private void OnMenuItemClicked(NSMenuItem menuItem, PluginRecord record)
+        {
+            if (record.Refresh)
+            {
+                _pluginManager.Run(_plugin);
+            }
+
+            if (record.BashScript != string.Empty)
+            {
+                var _ = Task.Factory.StartNew(async () =>
+                {
+                    await ProcessExecutor.Run(record.BashScript, record.Params);
+                });
+
+            }
+
+            if (record.Href != string.Empty)
+            {
+                var _ = Task.Factory.StartNew(async () =>
+                {
+                    await ProcessExecutor.Run("open", new string[] { record.Href });
+                });
+            }
         }
 
         public void Draw()
