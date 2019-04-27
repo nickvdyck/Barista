@@ -856,7 +856,6 @@ namespace Barista
             { ":zzz:"                               , "\U0001F4A4" },
             #endregion
         };
-
         private static readonly Regex EmojiMatcher = new Regex("(:[a-z0-9-+_]+:)");
 
         public static string ReplaceEmoji(this string input)

@@ -6,12 +6,10 @@ namespace Barista.MacOS
     public class StatusBar
     {
         private readonly PluginManager _pluginManager;
-        private readonly NSStatusBar _statusBar;
 
         public StatusBar(PluginManager pluginManager)
         {
             _pluginManager = pluginManager;
-            _statusBar = NSStatusBar.SystemStatusBar;
         }
 
         public void Draw()
