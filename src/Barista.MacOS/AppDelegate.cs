@@ -12,11 +12,9 @@ namespace Barista.MacOS
 
         public override void DidFinishLaunching(NSNotification notification)
         {
-            var provider = new LocalFileProvider(Settings.GetPluginDirectory());
-            var pluginManger = new PluginManager(provider);
+            var pluginManger = PluginManager.CreateAtDirectory(Settings.GetPluginDirectory());
             var statusBar = new StatusBar(pluginManger);
 
-            pluginManger.Load();
             statusBar.Draw();
             pluginManger.Start();
         }

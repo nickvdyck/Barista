@@ -1,21 +1,23 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Barista.Core.Commands;
+using Barista.Core.Utils;
 
-namespace Barista
+namespace Barista.Core.Data
 {
-    public class PluginRecord
+    public class PluginMenuItemBase : IPluginMenuItem
     {
-        public static PluginRecord Seperator = new PluginRecord();
-
+        public static IPluginMenuItem Seperator = new PluginMenuItemBase();
         internal Dictionary<string, string> Settings = new Dictionary<string, string>();
 
-        private string title = string.Empty;
+        public string OriginalTitle { get; internal set; } = string.Empty;
+
         public string Title
         {
             get
             {
-                var result = title;
+                var result = OriginalTitle;
                 if (Emojize)
                 {
                     result = result.ReplaceEmoji();
@@ -27,11 +29,6 @@ namespace Barista
                 }
 
                 return result;
-            }
-
-            internal set
-            {
-                title = value;
             }
         }
 
@@ -57,6 +54,22 @@ namespace Barista
                 return 50;
             }
 
+        }
+
+        public bool IsCommand
+        {
+            get
+            {
+                return this.Refresh || this.BashScript != string.Empty || this.Href != string.Empty;
+            }
+        }
+
+        public ICommand Command
+        {
+            get
+            {
+                return new PluginMenuItemExecuteCommand(this);
+            }
         }
 
         public bool Refresh

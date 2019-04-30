@@ -1,5 +1,4 @@
-﻿using System;
-namespace Barista
+namespace Barista.Core.Data
 {
     public enum PluginType
     {

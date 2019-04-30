@@ -2,22 +2,36 @@
 using System.Collections.Generic;
 using System.Timers;
 using Barista.Core.FileSystem;
+using Barista.Core.Internal;
+using Barista.Core.Data;
+using System.Linq;
+using Barista.Core.Utils;
+using Barista.Core.Commands;
 
 namespace Barista
 {
     public sealed class PluginManager
     {
-        private readonly IFileProvider _fileProvider;
-        private List<Plugin> _plugins { get; set; }
-        private Timer _timer;
-
-        public PluginManager(IFileProvider pluginFileProvider)
+        public static PluginManager CreateAtDirectory(string pluginDirectory)
         {
-            _plugins = new List<Plugin>();
-            _fileProvider = pluginFileProvider;
+            var provider = new LocalFileProvider(pluginDirectory);
+            var factory = new PluginFactory();
+            return new PluginManager(provider, factory);
         }
 
-        public void Load()
+        private readonly IFileProvider _fileProvider;
+        private readonly IPluginFactory _pluginFactory;
+        private readonly Dictionary<Plugin, PluginExecutionHandler> _plugins = new Dictionary<Plugin, PluginExecutionHandler>();
+        private Timer _timer;
+
+        internal PluginManager(IFileProvider pluginFileProvider, IPluginFactory pluginFactory)
+        {
+            _fileProvider = pluginFileProvider;
+            _pluginFactory = pluginFactory;
+            Load();
+        }
+
+        internal void Load()
         {
             var files = _fileProvider.GetDirectoryContents();
 
@@ -26,14 +40,30 @@ namespace Barista
             foreach (var file in files)
             {
                 if (file.IsDirectory) continue;
+                var plugin = _pluginFactory.FromFilePath(file.PhysicalPath);
+                var handler = new PluginExecutionHandler(plugin, new PluginOutputParser());
 
-                _plugins.Add(new Plugin(file.PhysicalPath));
+                _plugins.Add(plugin, handler);
             }
+        }
+
+        public void InvokeCommand(ICommand command)
+        {
+            command.Execute().Forget();
         }
 
         public IReadOnlyList<Plugin> GetPlugins()
         {
-            return _plugins;
+            return _plugins.Keys.ToList();
+        }
+
+        internal IDisposable Monitor(Plugin plugin, IObserver<IReadOnlyCollection<IPluginMenuItem>> observer)
+        {
+            if (_plugins.TryGetValue(plugin, out var handler))
+            {
+                return handler.Subscribe(observer);
+            }
+            return EmptyDisposable.Instance;
         }
 
         public void RunAll()
@@ -42,16 +72,9 @@ namespace Barista
 
             foreach (var plugin in _plugins)
             {
-                var _ = plugin.Execute();
+                plugin.Value.ExecutePlugin().Forget();
             }
 
-            _timer.Start();
-        }
-
-        public void Run(Plugin plugin)
-        {
-            _timer.Stop();
-            var _ = plugin.Execute();
             _timer.Start();
         }
 
@@ -62,7 +85,7 @@ namespace Barista
 
         private void StartCore()
         {
-            _timer = new Timer(500)
+            _timer = new Timer(100)
             {
                 AutoReset = true,
                 Enabled = true,
@@ -72,11 +95,11 @@ namespace Barista
             {
                 foreach (var plugin in _plugins)
                 {
-                    var offset = DateTime.Now - plugin.LastExecution;
+                    var offset = DateTime.Now - plugin.Key.LastExecution;
 
-                    if (offset.TotalSeconds > plugin.Interval)
+                    if (offset.TotalSeconds > plugin.Key.Interval)
                     {
-                        var _ = plugin.Execute();
+                        plugin.Value.ExecutePlugin().Forget();
                     }
                 }
             };

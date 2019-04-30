@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AppKit;
+using Barista.Core.Data;
+using Barista.Core;
 using Foundation;
 
 namespace Barista.MacOS
@@ -30,9 +32,12 @@ namespace Barista.MacOS
             {
                 Title = $"Updated {TimeAgoUtils.TimeAgo(DateTime.Now)}",
             };
+
+
+            _pluginManager.Monitor(plugin, OnPluginExecuted);
         }
 
-        private void OnPluginExecuted(IReadOnlyCollection<PluginRecord> result)
+        private void OnPluginExecuted(IReadOnlyCollection<IPluginMenuItem> result)
         {
             var first = result.FirstOrDefault();
             InvokeOnMainThread(() =>
@@ -45,30 +50,27 @@ namespace Barista.MacOS
 
             _menuItems.Clear();
 
-            foreach (var record in result.Skip(1))
+            foreach (var item in result.Skip(1))
             {
-                if (record == PluginRecord.Seperator)
+                if (item == PluginMenuItemBase.Seperator)
                 {
                     _menuItems.Add(NSMenuItem.SeparatorItem);
                 }
                 else
                 {
-                    var title = record.Title;
-                    if (record.Title.Length > record.Length)
-                        title = record.Title.Substring(0, record.Length) + " ...";
+                    var title = item.Title;
+                    if (item.Title.Length > item.Length)
+                        title = item.Title.Substring(0, item.Length) + " ...";
 
 
-                    var menuItem = new NSMenuItem(record.Title)
+                    var nsMenuItem = new NSMenuItem(item.Title)
                     {
                         Title = title,
                     };
 
-                    if (record.Refresh || record.BashScript != string.Empty || record.Href != string.Empty)
-                    {
-                        menuItem.Activated += (sender, e) => OnMenuItemClicked(menuItem, record);
-                    }
+                    if (item.IsCommand) nsMenuItem.Activated += (sender, e) => _pluginManager.InvokeCommand(item.Command);
 
-                    _menuItems.Add(menuItem);
+                    _menuItems.Add(nsMenuItem);
                 }
             }
         }
@@ -95,31 +97,6 @@ namespace Barista.MacOS
             _isOpen = false;
         }
 
-        private void OnMenuItemClicked(NSMenuItem menuItem, PluginRecord record)
-        {
-            if (record.Refresh)
-            {
-                _pluginManager.Run(_plugin);
-            }
-
-            if (record.BashScript != string.Empty)
-            {
-                var _ = Task.Factory.StartNew(async () =>
-                {
-                    await ProcessExecutor.Run(record.BashScript, record.Params);
-                });
-
-            }
-
-            if (record.Href != string.Empty)
-            {
-                var _ = Task.Factory.StartNew(async () =>
-                {
-                    await ProcessExecutor.Run("open", new string[] { record.Href });
-                });
-            }
-        }
-
         public void Draw()
         {
             var events = new StatusItemEvents
@@ -136,8 +113,6 @@ namespace Barista.MacOS
             {
                 Delegate = events,
             };
-
-            _plugin.OnExecuted = OnPluginExecuted;
         }
     }
 }

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
-namespace Barista
+[assembly: InternalsVisibleTo("Barista.Core.Tests")]
+namespace Barista.Core.Utils
 {
-    public static class Emojize
+    internal static class Emojize
     {
         public static readonly IReadOnlyDictionary<string, string> EmojiMap = new Dictionary<string, string>
         {
