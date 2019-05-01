@@ -33,8 +33,30 @@ namespace Barista.MacOS
             {
                 Title = "Refresh All",
             };
-
             refreshAll.Activated += (sender, e) => _pluginManager.RunAll();
+
+            NSWindowController controller = null;
+
+            var settings = new NSMenuItem("Settings")
+            {
+                Title = "Settings",
+            };
+            settings.Activated += (sender, e) =>
+            {
+                if (controller == null)
+                {
+                    // Get new window
+                    var storyboard = NSStoryboard.FromName("Main", null);
+                    controller = storyboard.InstantiateControllerWithIdentifier("MainWindow") as NSWindowController;
+
+                    // Display
+                    controller.ShowWindow(settings);
+                }
+
+                NSApplication.SharedApplication.ActivateIgnoringOtherApps(true);
+                controller.Window.MakeKeyAndOrderFront(settings);
+            };
+
 
             var quit = new NSMenuItem("Quit")
             {
@@ -45,6 +67,7 @@ namespace Barista.MacOS
 
             preferences.Submenu.AddItem(refreshAll);
             preferences.Submenu.AddItem(NSMenuItem.SeparatorItem);
+            preferences.Submenu.AddItem(settings);
             preferences.Submenu.AddItem(quit);
 
             foreach (var plugin in _pluginManager.GetPlugins())

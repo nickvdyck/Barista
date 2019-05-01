@@ -28,3 +28,7 @@ test:
 
 install:
 	open ./.build/bin/Barista.MacOS/Release/Barista-1.0.0.pkg
+
+uninstall:
+	sudo rm -rf /Application/Barista.app
+	sudo pkgutil --forget codes.nvd.Barista
