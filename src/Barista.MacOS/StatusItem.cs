@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AppKit;
-using Barista.Core.Data;
 using Barista.Core;
+using Barista.Core.Data;
+using Barista.Core.Extensions;
 using Foundation;
 
 namespace Barista.MacOS
@@ -12,38 +13,39 @@ namespace Barista.MacOS
     public class StatusItem : NSObject
     {
         private readonly NSStatusBar _statusBar;
-        private readonly Plugin _plugin;
-        private readonly PluginManager _pluginManager;
         private readonly NSMenuItem _lastUpdated;
         private readonly NSMenuItem _preferences;
 
         private NSStatusItem _mainMenu;
         private List<NSMenuItem> _menuItems = new List<NSMenuItem>();
-        private bool _isOpen = false;
+        private bool _isOpen;
 
-        public StatusItem(PluginManager manger, Plugin plugin, NSMenuItem preferences)
+        private DateTime _lastExecution = DateTime.Now;
+
+        private readonly Action<IPluginMenuItem> OnMenuItemClicked;
+
+        public StatusItem(IObservable<IReadOnlyCollection<IPluginMenuItem>> observable, Action<IPluginMenuItem> onMenuItemClicked, NSMenuItem preferences)
         {
-            _pluginManager = manger;
-            _plugin = plugin;
+            OnMenuItemClicked = onMenuItemClicked;
             _preferences = preferences;
 
             _statusBar = NSStatusBar.SystemStatusBar;
             _lastUpdated = new NSMenuItem("LastUpdated")
             {
-                Title = $"Updated {TimeAgoUtils.TimeAgo(DateTime.Now)}",
+                Title = $"Updated {TimeAgoUtils.TimeAgo(_lastExecution)}",
             };
 
-
-            _pluginManager.Monitor(plugin, OnPluginExecuted);
+            observable.Subscribe(OnNextPluginExecution);
         }
 
-        private void OnPluginExecuted(IReadOnlyCollection<IPluginMenuItem> result)
+        private void OnNextPluginExecution(IReadOnlyCollection<IPluginMenuItem> result)
         {
+            _lastExecution = DateTime.Now;
             var first = result.FirstOrDefault();
             InvokeOnMainThread(() =>
             {
                 _mainMenu.Button.Title = first.Title;
-                _lastUpdated.Title = $"Updated {TimeAgoUtils.TimeAgo(_plugin.LastExecution)}";
+                _lastUpdated.Title = $"Updated {TimeAgoUtils.TimeAgo(_lastExecution)}";
             });
 
             if (_isOpen) return;
@@ -52,7 +54,7 @@ namespace Barista.MacOS
 
             foreach (var item in result.Skip(1))
             {
-                if (item == PluginMenuItemBase.Seperator)
+                if (item == PluginMenuItemBase.Separator)
                 {
                     _menuItems.Add(NSMenuItem.SeparatorItem);
                 }
@@ -68,7 +70,7 @@ namespace Barista.MacOS
                         Title = title,
                     };
 
-                    if (item.IsCommand) nsMenuItem.Activated += (sender, e) => _pluginManager.InvokeCommand(item.Command);
+                    if (item.IsCommand) nsMenuItem.Activated += (sender, e) => OnMenuItemClicked(item);
 
                     _menuItems.Add(nsMenuItem);
                 }
@@ -77,7 +79,7 @@ namespace Barista.MacOS
 
         private void OnMenuWillOpen(NSMenu _)
         {
-            _lastUpdated.Title = $"Updated {TimeAgoUtils.TimeAgo(_plugin.LastExecution)}";
+            _lastUpdated.Title = $"Updated {TimeAgoUtils.TimeAgo(_lastExecution)}";
 
             foreach (var item in _menuItems)
             {
@@ -109,7 +111,7 @@ namespace Barista.MacOS
 
             _mainMenu.Button.Title = "...";
 
-            _mainMenu.Menu = new NSMenu(_plugin.Name)
+            _mainMenu.Menu = new NSMenu()
             {
                 Delegate = events,
             };

@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Barista.Core.Utils
+namespace Barista.Core.Extensions
 {
     public static class TaskExtensions
     {

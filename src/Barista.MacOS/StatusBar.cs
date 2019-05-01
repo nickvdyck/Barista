@@ -1,5 +1,6 @@
 ﻿using System;
 using AppKit;
+using Barista.Core.Data;
 
 namespace Barista.MacOS
 {
@@ -10,6 +11,14 @@ namespace Barista.MacOS
         public StatusBar(PluginManager pluginManager)
         {
             _pluginManager = pluginManager;
+        }
+
+        public void OnMenuItemClicked(IPluginMenuItem item)
+        {
+            if (item.IsCommand)
+            {
+                _pluginManager.InvokeCommand(item.Command);
+            }
         }
 
         public void Draw()
@@ -40,7 +49,8 @@ namespace Barista.MacOS
 
             foreach (var plugin in _pluginManager.GetPlugins())
             {
-                var item = new StatusItem(_pluginManager, plugin, (NSMenuItem)preferences.Copy());
+                var monitor = _pluginManager.Monitor(plugin);
+                var item = new StatusItem(monitor, OnMenuItemClicked, (NSMenuItem)preferences.Copy());
 
                 item.Draw();
             }

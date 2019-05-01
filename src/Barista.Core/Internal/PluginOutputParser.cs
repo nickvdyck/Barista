@@ -28,7 +28,7 @@ namespace Barista.Core.Internal
                     menuItems.Add(record);
                 }
 
-                menuItems.Add(PluginMenuItemBase.Seperator);
+                menuItems.Add(PluginMenuItemBase.Separator);
             }
 
             return menuItems;
@@ -42,7 +42,7 @@ namespace Barista.Core.Internal
 
             var item = new PluginMenuItemBase
             {
-                OriginalTitle = title.ReplaceEmoji()
+                OriginalTitle = title
             };
 
             if (!string.IsNullOrEmpty(attributes))

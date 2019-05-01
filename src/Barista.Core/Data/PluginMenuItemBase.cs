@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Barista.Core.Commands;
+using Barista.Core.Extensions;
 using Barista.Core.Utils;
 
 namespace Barista.Core.Data
 {
     public class PluginMenuItemBase : IPluginMenuItem
     {
-        public static IPluginMenuItem Seperator = new PluginMenuItemBase();
+        public static IPluginMenuItem Separator = new PluginMenuItemBase();
         internal Dictionary<string, string> Settings = new Dictionary<string, string>();
 
         public string OriginalTitle { get; internal set; } = string.Empty;
@@ -147,7 +148,8 @@ namespace Barista.Core.Data
                     return emojize == "true";
 
                 }
-                return false;
+
+                return true;
             }
 
         }

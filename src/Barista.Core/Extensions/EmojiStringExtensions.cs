@@ -4,9 +4,9 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 [assembly: InternalsVisibleTo("Barista.Core.Tests")]
-namespace Barista.Core.Utils
+namespace Barista.Core.Extensions
 {
-    internal static class Emojize
+    internal static class EmojiStringExtensions
     {
         public static readonly IReadOnlyDictionary<string, string> EmojiMap = new Dictionary<string, string>
         {

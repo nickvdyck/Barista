@@ -1,5 +1,5 @@
 using Xunit;
-using Barista.Core.Utils;
+using Barista.Core.Extensions;
 
 namespace Barista.Core.Tests
 {

@@ -4,11 +4,6 @@ namespace Barista.Core.Utils
 {
     internal sealed class AnonymousObserver<T> : ObserverBase<T>
     {
-        internal static class Stubs
-        {
-            public static readonly Action Nop = () => { };
-            public static readonly Action<Exception> Throw = ex => { throw ex; };
-        }
         private readonly Action<T> _onNext;
         private readonly Action<Exception> _onError;
         private readonly Action _onCompleted;
@@ -21,17 +16,17 @@ namespace Barista.Core.Utils
         }
 
         public AnonymousObserver(Action<T> onNext)
-            : this(onNext, Stubs.Throw, Stubs.Nop)
+            : this(onNext, ActionStubs.Throw, ActionStubs.Noop)
         {
         }
 
         public AnonymousObserver(Action<T> onNext, Action<Exception> onError)
-            : this(onNext, onError, Stubs.Nop)
+            : this(onNext, onError, ActionStubs.Noop)
         {
         }
 
         public AnonymousObserver(Action<T> onNext, Action onCompleted)
-            : this(onNext, Stubs.Throw, onCompleted)
+            : this(onNext, ActionStubs.Throw, onCompleted)
         {
         }
 

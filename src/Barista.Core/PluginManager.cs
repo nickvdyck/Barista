@@ -7,6 +7,7 @@ using Barista.Core.Data;
 using System.Linq;
 using Barista.Core.Utils;
 using Barista.Core.Commands;
+using Barista.Core.Extensions;
 
 namespace Barista
 {
@@ -57,13 +58,14 @@ namespace Barista
             return _plugins.Keys.ToList();
         }
 
-        internal IDisposable Monitor(Plugin plugin, IObserver<IReadOnlyCollection<IPluginMenuItem>> observer)
+        public IObservable<IReadOnlyCollection<IPluginMenuItem>> Monitor(Plugin plugin)
         {
             if (_plugins.TryGetValue(plugin, out var handler))
             {
-                return handler.Subscribe(observer);
+                return handler;
             }
-            return EmptyDisposable.Instance;
+
+            return null;
         }
 
         public void RunAll()
