@@ -89,13 +89,7 @@
     <Compile Include="StatusItem.cs" />
     <Compile Include="StatusItemEvents.cs" />
     <Compile Include="Preferences\PreferencesWindow.cs" />
-    <Compile Include="Preferences\PreferencesWindow.designer.cs">
-      <DependentUpon>PreferencesWindow.cs</DependentUpon>
-    </Compile>
     <Compile Include="Preferences\PreferencesWindowController.cs" />
-    <Compile Include="Preferences\PreferencesWindowController.designer.cs">
-      <DependentUpon>PreferencesWindowController.cs</DependentUpon>
-    </Compile>
     <Compile Include="Preferences\Tabs\IPreferencesTab.cs" />
     <Compile Include="Preferences\PreferencesToolbarDelegate.cs" />
     <Compile Include="Preferences\Tabs\GeneralView.cs" />

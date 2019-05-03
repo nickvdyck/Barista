@@ -6,7 +6,7 @@ using CoreGraphics;
 
 namespace Barista.MacOS.Preferences
 {
-    public partial class PreferencesWindow : NSWindow
+    public class PreferencesWindow : NSWindow
     {
         public PreferencesWindow(IntPtr handle) : base(handle)
         {

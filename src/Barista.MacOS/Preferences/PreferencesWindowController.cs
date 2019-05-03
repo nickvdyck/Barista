@@ -9,7 +9,7 @@ using CoreGraphics;
 
 namespace Barista.MacOS.Preferences
 {
-    public partial class PreferencesWindowController : NSWindowController
+    public class PreferencesWindowController : NSWindowController
     {
         public PreferencesWindowController(IntPtr handle) : base(handle)
         {
@@ -27,7 +27,7 @@ namespace Barista.MacOS.Preferences
 
             base.Window = new PreferencesWindow(
                 tabs.First().View.Bounds,
-                NSWindowStyle.Titled | NSWindowStyle.Closable,
+                NSWindowStyle.Titled | NSWindowStyle.Closable | NSWindowStyle.Miniaturizable,
                 NSBackingStore.Buffered, false
             );
 
