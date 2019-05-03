@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AppKit;
-using Barista.Core;
+﻿using AppKit;
 using Barista.Core.Data;
 using Barista.Core.Extensions;
+using Barista.MacOS.Utils;
 using Foundation;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Barista.MacOS
 {
@@ -32,7 +31,7 @@ namespace Barista.MacOS
             _statusBar = NSStatusBar.SystemStatusBar;
             _lastUpdated = new NSMenuItem("LastUpdated")
             {
-                Title = $"Updated {TimeAgoUtils.TimeAgo(_lastExecution)}",
+                Title = $"Updated {TimeAgo.Format(_lastExecution)}",
             };
 
             observable.Subscribe(OnNextPluginExecution);
@@ -45,7 +44,7 @@ namespace Barista.MacOS
             InvokeOnMainThread(() =>
             {
                 _mainMenu.Button.Title = first.Title;
-                _lastUpdated.Title = $"Updated {TimeAgoUtils.TimeAgo(_lastExecution)}";
+                _lastUpdated.Title = $"Updated {TimeAgo.Format(_lastExecution)}";
             });
 
             if (_isOpen) return;
@@ -79,7 +78,7 @@ namespace Barista.MacOS
 
         private void OnMenuWillOpen(NSMenu _)
         {
-            _lastUpdated.Title = $"Updated {TimeAgoUtils.TimeAgo(_lastExecution)}";
+            _lastUpdated.Title = $"Updated {TimeAgo.Format(_lastExecution)}";
 
             foreach (var item in _menuItems)
             {

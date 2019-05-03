@@ -68,9 +68,10 @@
     <ImageAsset Include="Assets.xcassets\Contents.json" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Resources\" />
     <Folder Include="Preferences\" />
     <Folder Include="Preferences\Tabs\" />
+    <Folder Include="SystemStatusBar\" />
+    <Folder Include="Utils\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -79,12 +80,7 @@
   <ItemGroup>
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
-    <Compile Include="ViewController.cs" />
-    <Compile Include="ViewController.designer.cs">
-      <DependentUpon>ViewController.cs</DependentUpon>
-    </Compile>
     <Compile Include="Settings.cs" />
-    <Compile Include="TimeAgoUtils.cs" />
     <Compile Include="StatusBar.cs" />
     <Compile Include="StatusItem.cs" />
     <Compile Include="StatusItemEvents.cs" />
@@ -108,6 +104,7 @@
     <Compile Include="Preferences\Tabs\PluginViewController.designer.cs">
       <DependentUpon>PluginViewController.cs</DependentUpon>
     </Compile>
+    <Compile Include="Utils\TimeAgo.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Preferences\Tabs\GeneralView.xib" />

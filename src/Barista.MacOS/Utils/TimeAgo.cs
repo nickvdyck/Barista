@@ -1,9 +1,9 @@
 ﻿using System;
-namespace Barista.MacOS
+namespace Barista.MacOS.Utils
 {
-    public static class TimeAgoUtils
+    public static class TimeAgo
     {
-        public static string TimeAgo(DateTime dateTime)
+        public static string Format(DateTime dateTime)
         {
             var timeSpan = DateTime.Now.Subtract(dateTime);
 
