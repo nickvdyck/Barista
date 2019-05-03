@@ -69,6 +69,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
+    <Folder Include="Preferences\" />
+    <Folder Include="Preferences\Tabs\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -86,9 +88,37 @@
     <Compile Include="StatusBar.cs" />
     <Compile Include="StatusItem.cs" />
     <Compile Include="StatusItemEvents.cs" />
+    <Compile Include="Preferences\PreferencesWindow.cs" />
+    <Compile Include="Preferences\PreferencesWindow.designer.cs">
+      <DependentUpon>PreferencesWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Preferences\PreferencesWindowController.cs" />
+    <Compile Include="Preferences\PreferencesWindowController.designer.cs">
+      <DependentUpon>PreferencesWindowController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Preferences\Tabs\IPreferencesTab.cs" />
+    <Compile Include="Preferences\PreferencesToolbarDelegate.cs" />
+    <Compile Include="Preferences\Tabs\GeneralView.cs" />
+    <Compile Include="Preferences\Tabs\GeneralViewController.cs" />
+    <Compile Include="Preferences\Tabs\GeneralView.designer.cs">
+      <DependentUpon>GeneralView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Preferences\Tabs\GeneralViewController.designer.cs">
+      <DependentUpon>GeneralViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Preferences\Tabs\PluginView.cs" />
+    <Compile Include="Preferences\Tabs\PluginViewController.cs" />
+    <Compile Include="Preferences\Tabs\PluginView.designer.cs">
+      <DependentUpon>PluginView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Preferences\Tabs\PluginViewController.designer.cs">
+      <DependentUpon>PluginViewController.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <InterfaceDefinition Include="Main.storyboard" />
+    <InterfaceDefinition Include="Preferences\PreferencesWindow.xib" />
+    <InterfaceDefinition Include="Preferences\Tabs\GeneralView.xib" />
+    <InterfaceDefinition Include="Preferences\Tabs\PluginView.xib" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Barista.Core\Barista.Core.csproj">

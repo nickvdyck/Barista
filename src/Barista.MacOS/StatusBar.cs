@@ -1,6 +1,7 @@
 ﻿using System;
 using AppKit;
 using Barista.Core.Data;
+using Barista.MacOS.Preferences;
 
 namespace Barista.MacOS
 {
@@ -35,7 +36,7 @@ namespace Barista.MacOS
             };
             refreshAll.Activated += (sender, e) => _pluginManager.RunAll();
 
-            NSWindowController controller = null;
+            PreferencesWindowController controller = null;
 
             var settings = new NSMenuItem("Settings")
             {
@@ -45,12 +46,8 @@ namespace Barista.MacOS
             {
                 if (controller == null)
                 {
-                    // Get new window
-                    var storyboard = NSStoryboard.FromName("Main", null);
-                    controller = storyboard.InstantiateControllerWithIdentifier("MainWindow") as NSWindowController;
-
-                    // Display
-                    controller.ShowWindow(settings);
+                    controller = new PreferencesWindowController();
+                    controller.Show();
                 }
 
                 NSApplication.SharedApplication.ActivateIgnoringOtherApps(true);
