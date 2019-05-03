@@ -5,6 +5,7 @@ using AppKit;
 using System.Collections.Generic;
 using Barista.MacOS.Preferences.Tabs;
 using System.Linq;
+using CoreGraphics;
 
 namespace Barista.MacOS.Preferences
 {
@@ -21,39 +22,40 @@ namespace Barista.MacOS.Preferences
 
         public PreferencesWindowController() : base("PreferencesWindow")
         {
-        }
-
-        readonly List<IPreferencesTab> tabs = new List<IPreferencesTab>();
-        PreferencesToolbarDelegate toolbarDelegate;
-
-        // When Preference Window is loaded from a NIB we create a view controller
-        // for each tab in preferences window and initialize the toolbar.
-        public override void AwakeFromNib()
-        {
-            base.AwakeFromNib();
-
             tabs.Add(new GeneralViewController());
             tabs.Add(new PluginViewController());
 
-            InitializeToolbar();
+            base.Window = new PreferencesWindow(
+                tabs.First().View.Bounds,
+                NSWindowStyle.Titled | NSWindowStyle.Closable,
+                NSBackingStore.Buffered, false
+            );
+
+            Window.AwakeFromNib();
         }
+
+        private readonly List<IPreferencesTab> tabs = new List<IPreferencesTab>();
+        private PreferencesToolbarDelegate toolbarDelegate;
 
         public void Show()
         {
+            InitializeToolbar();
+            Window.Center();
+
             ShowWindow(this);
         }
 
-        void InitializeToolbar()
+        private void InitializeToolbar()
         {
             toolbarDelegate = new PreferencesToolbarDelegate(tabs);
             toolbarDelegate.SelectionChanged += HandleSelectionChanged;
 
             Window.Toolbar = CreateToolbar();
 
-            HandleSelectionChanged(this, null); // Called once when the window is created to make first tab visible
+            HandleSelectionChanged(this, null);
         }
 
-        NSToolbar CreateToolbar()
+        private NSToolbar CreateToolbar()
         {
             var tb = new NSToolbar("PreferencesToolbar")
             {
@@ -64,33 +66,34 @@ namespace Barista.MacOS.Preferences
             return tb;
         }
 
-        // Called when user clicks on toolbar item to change the preferences tab.
-        void HandleSelectionChanged(object sender, EventArgs e)
+        private void HandleSelectionChanged(object sender, EventArgs e)
         {
             var selectedTab = tabs.Single(s => s.Name.Equals(Window.Toolbar.SelectedItemIdentifier));
             Window.Title = selectedTab.Name;
             ShowSelectedTab(selectedTab);
         }
 
-        // Change preferences tab view to selected one. Animate resizing of the window if the selected
-        // tab is different size than the currently visible one.
-        void ShowSelectedTab(IPreferencesTab selectedTab)
+        private void ShowSelectedTab(IPreferencesTab selectedTab)
         {
-            var delta = Window.ContentView.Frame.Height - selectedTab.View.Frame.Height; // Delta must be calculated before currect tab view is removed
+            var contentSize = (selectedTab as NSViewController).View.Bounds.Size;
+            var newWindowSize = Window.FrameRectFor(new CGRect(CGPoint.Empty, contentSize)).Size;
+            var frame = Window.Frame;
+
+            frame.Y += frame.Height - newWindowSize.Height;
+            frame.Size = newWindowSize;
+
+            var horizontalDiff = (Window.Frame.Width - newWindowSize.Width) / 2;
+            frame.X += horizontalDiff;
+
             RemoveCurrentTabView();
-            Window.SetFrame(CalculateNewFrameForWindow(delta), true, true);
+            Window.SetFrame(frame, false, true);
             Window.ContentView.AddSubview(selectedTab.View);
         }
 
-        void RemoveCurrentTabView()
+        private void RemoveCurrentTabView()
         {
             if (Window.ContentView.Subviews.Any())
                 Window.ContentView.Subviews.Single().RemoveFromSuperview();
-        }
-
-        CoreGraphics.CGRect CalculateNewFrameForWindow(nfloat delta)
-        {
-            return new CoreGraphics.CGRect(Window.Frame.X, Window.Frame.Y + delta, Window.Frame.Width, Window.Frame.Height - delta);
         }
 
         public new PreferencesWindow Window

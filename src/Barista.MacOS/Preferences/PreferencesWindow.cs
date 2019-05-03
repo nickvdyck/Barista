@@ -2,6 +2,7 @@ using System;
 
 using Foundation;
 using AppKit;
+using CoreGraphics;
 
 namespace Barista.MacOS.Preferences
 {
@@ -14,6 +15,11 @@ namespace Barista.MacOS.Preferences
         [Export("initWithCoder:")]
         public PreferencesWindow(NSCoder coder) : base(coder)
         {
+        }
+
+        public PreferencesWindow(CGRect contentRect, NSWindowStyle aStyle, NSBackingStore bufferingType, bool deferCreation) : base(contentRect, aStyle, bufferingType, deferCreation)
+        {
+            ContentView = new NSView(Frame);
         }
 
         public override void AwakeFromNib()

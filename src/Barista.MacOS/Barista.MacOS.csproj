@@ -116,7 +116,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <InterfaceDefinition Include="Preferences\PreferencesWindow.xib" />
     <InterfaceDefinition Include="Preferences\Tabs\GeneralView.xib" />
     <InterfaceDefinition Include="Preferences\Tabs\PluginView.xib" />
   </ItemGroup>
