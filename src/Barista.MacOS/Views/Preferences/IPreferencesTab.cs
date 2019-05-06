@@ -1,7 +1,6 @@
-using System;
 using AppKit;
 
-namespace Barista.MacOS.Preferences.Tabs
+namespace Barista.MacOS.Views.Preferences
 {
     public interface IPreferencesTab
     {

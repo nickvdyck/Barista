@@ -1,18 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Foundation;
 using AppKit;
+using Foundation;
+using System;
 
-namespace Barista.MacOS.Preferences.Tabs
+namespace Barista.MacOS.Views.Preferences
 {
-    public partial class GeneralViewController : NSViewController, IPreferencesTab
+    public partial class PluginViewController : NSViewController, IPreferencesTab
     {
         public string Name
         {
             get
             {
-                return "General";
+                return "Plugins";
             }
         }
 
@@ -20,27 +18,27 @@ namespace Barista.MacOS.Preferences.Tabs
         {
             get
             {
-                return NSImage.ImageNamed("NSGeneralPreferences");
+                return NSImage.ImageNamed("NSUser");
             }
         }
 
         #region Constructors
 
         // Called when created from unmanaged code
-        public GeneralViewController(IntPtr handle) : base(handle)
+        public PluginViewController(IntPtr handle) : base(handle)
         {
             Initialize();
         }
 
         // Called when created directly from a XIB file
         [Export("initWithCoder:")]
-        public GeneralViewController(NSCoder coder) : base(coder)
+        public PluginViewController(NSCoder coder) : base(coder)
         {
             Initialize();
         }
 
         // Call to load from the XIB/NIB file
-        public GeneralViewController() : base("GeneralView", NSBundle.MainBundle)
+        public PluginViewController() : base("PluginView", NSBundle.MainBundle)
         {
             Initialize();
         }
@@ -53,11 +51,11 @@ namespace Barista.MacOS.Preferences.Tabs
         #endregion
 
         //strongly typed view accessor
-        public new GeneralView View
+        public new PluginView View
         {
             get
             {
-                return (GeneralView)base.View;
+                return (PluginView)base.View;
             }
         }
     }

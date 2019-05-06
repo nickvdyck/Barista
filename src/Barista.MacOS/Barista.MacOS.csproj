@@ -52,6 +52,9 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Xamarin.Mac" />
+    <Reference Include="Autofac">
+      <HintPath>..\..\packages\Autofac.4.9.2\lib\netstandard2.0\Autofac.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
@@ -68,47 +71,54 @@
     <ImageAsset Include="Assets.xcassets\Contents.json" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Preferences\" />
-    <Folder Include="Preferences\Tabs\" />
-    <Folder Include="SystemStatusBar\" />
     <Folder Include="Utils\" />
+    <Folder Include="Views\" />
+    <Folder Include="Models\" />
+    <Folder Include="Services\" />
+    <Folder Include="ViewModels\" />
+    <Folder Include="Views\Preferences\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
     <None Include="Entitlements.plist" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
-    <Compile Include="Settings.cs" />
     <Compile Include="StatusBar.cs" />
     <Compile Include="StatusItem.cs" />
     <Compile Include="StatusItemEvents.cs" />
-    <Compile Include="Preferences\PreferencesWindow.cs" />
-    <Compile Include="Preferences\PreferencesWindowController.cs" />
-    <Compile Include="Preferences\Tabs\IPreferencesTab.cs" />
-    <Compile Include="Preferences\PreferencesToolbarDelegate.cs" />
-    <Compile Include="Preferences\Tabs\GeneralView.cs" />
-    <Compile Include="Preferences\Tabs\GeneralViewController.cs" />
-    <Compile Include="Preferences\Tabs\GeneralView.designer.cs">
+    <Compile Include="Utils\TimeAgo.cs" />
+    <Compile Include="Models\AppSettings.cs" />
+    <Compile Include="Services\ISettingsService.cs" />
+    <Compile Include="Services\DefaultsService.cs" />
+    <Compile Include="ViewModels\GeneralPreferencesViewModel.cs" />
+    <Compile Include="Views\Preferences\GeneralView.cs" />
+    <Compile Include="Views\Preferences\GeneralView.designer.cs">
       <DependentUpon>GeneralView.cs</DependentUpon>
     </Compile>
-    <Compile Include="Preferences\Tabs\GeneralViewController.designer.cs">
+    <Compile Include="Views\Preferences\GeneralViewController.cs" />
+    <Compile Include="Views\Preferences\GeneralViewController.designer.cs">
       <DependentUpon>GeneralViewController.cs</DependentUpon>
     </Compile>
-    <Compile Include="Preferences\Tabs\PluginView.cs" />
-    <Compile Include="Preferences\Tabs\PluginViewController.cs" />
-    <Compile Include="Preferences\Tabs\PluginView.designer.cs">
+    <Compile Include="Views\Preferences\IPreferencesTab.cs" />
+    <Compile Include="Views\Preferences\PluginView.cs" />
+    <Compile Include="Views\Preferences\PluginView.designer.cs">
       <DependentUpon>PluginView.cs</DependentUpon>
     </Compile>
-    <Compile Include="Preferences\Tabs\PluginViewController.designer.cs">
+    <Compile Include="Views\Preferences\PluginViewController.cs" />
+    <Compile Include="Views\Preferences\PluginViewController.designer.cs">
       <DependentUpon>PluginViewController.cs</DependentUpon>
     </Compile>
-    <Compile Include="Utils\TimeAgo.cs" />
+    <Compile Include="Views\Preferences\PreferencesToolbarDelegate.cs" />
+    <Compile Include="Views\Preferences\PreferencesWindow.cs" />
+    <Compile Include="Views\Preferences\PreferencesWindowController.cs" />
+    <Compile Include="Views\Preferences\PreferencesWindowFactory.cs" />
   </ItemGroup>
   <ItemGroup>
-    <InterfaceDefinition Include="Preferences\Tabs\GeneralView.xib" />
-    <InterfaceDefinition Include="Preferences\Tabs\PluginView.xib" />
+    <InterfaceDefinition Include="Views\Preferences\GeneralView.xib" />
+    <InterfaceDefinition Include="Views\Preferences\PluginView.xib" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Barista.Core\Barista.Core.csproj">

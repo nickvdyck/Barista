@@ -1,10 +1,9 @@
-using System;
-
-using Foundation;
 using AppKit;
 using CoreGraphics;
+using Foundation;
+using System;
 
-namespace Barista.MacOS.Preferences
+namespace Barista.MacOS.Views.Preferences
 {
     public class PreferencesWindow : NSWindow
     {

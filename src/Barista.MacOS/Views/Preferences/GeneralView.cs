@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Foundation;
 using AppKit;
+using Foundation;
+using System;
 
-namespace Barista.MacOS.Preferences.Tabs
+namespace Barista.MacOS.Views.Preferences
 {
-    public partial class GeneralView : AppKit.NSView
+    public partial class GeneralView : NSView
     {
         #region Constructors
 

@@ -1,13 +1,12 @@
+using AppKit;
+using Foundation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AppKit;
-using Foundation;
-using Barista.MacOS.Preferences.Tabs;
 
-namespace Barista.MacOS.Preferences
+namespace Barista.MacOS.Views.Preferences
 {
-    public class PreferencesToolbarDelegate : NSToolbarDelegate
+    class PreferencesToolbarDelegate : NSToolbarDelegate
     {
         internal event EventHandler SelectionChanged;
         IEnumerable<IPreferencesTab> tabs;

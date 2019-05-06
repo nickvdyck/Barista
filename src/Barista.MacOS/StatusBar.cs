@@ -1,17 +1,18 @@
-﻿using System;
-using AppKit;
+﻿using AppKit;
 using Barista.Core.Data;
-using Barista.MacOS.Preferences;
+using Barista.MacOS.Views.Preferences;
 
 namespace Barista.MacOS
 {
     public class StatusBar
     {
         private readonly PluginManager _pluginManager;
+        private readonly PreferencesWindowFactory _preferencesWindowFactory;
 
-        public StatusBar(PluginManager pluginManager)
+        public StatusBar(PluginManager pluginManager, PreferencesWindowFactory preferencesWindowFactory)
         {
             _pluginManager = pluginManager;
+            _preferencesWindowFactory = preferencesWindowFactory;
         }
 
         public void OnMenuItemClicked(IPluginMenuItem item)
@@ -36,19 +37,14 @@ namespace Barista.MacOS
             };
             refreshAll.Activated += (sender, e) => _pluginManager.RunAll();
 
-            PreferencesWindowController controller = null;
-
             var settings = new NSMenuItem("Settings")
             {
                 Title = "Settings",
             };
             settings.Activated += (sender, e) =>
             {
-                if (controller == null)
-                {
-                    controller = new PreferencesWindowController();
-                    controller.Show();
-                }
+                var controller = _preferencesWindowFactory.Create();
+                controller.Show();
 
                 NSApplication.SharedApplication.ActivateIgnoringOtherApps(true);
                 controller.Window.MakeKeyAndOrderFront(settings);

@@ -6,6 +6,8 @@ namespace Barista.MacOS
     {
         public static string GetPluginDirectory()
         {
+            //NSUserDefaults.StandardUserDefaults.SetString("pluginDirectory", "");
+
             return NSUserDefaults.StandardUserDefaults.StringForKey("pluginDirectory");
         }
     }

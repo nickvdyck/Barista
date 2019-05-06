@@ -1,16 +1,17 @@
-using System;
-
-using Foundation;
 using AppKit;
-using System.Collections.Generic;
-using Barista.MacOS.Preferences.Tabs;
-using System.Linq;
 using CoreGraphics;
+using Foundation;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace Barista.MacOS.Preferences
+namespace Barista.MacOS.Views.Preferences
 {
     public class PreferencesWindowController : NSWindowController
     {
+        public static PreferencesWindowController Create(IEnumerable<IPreferencesTab> tabControllers) =>
+            new PreferencesWindowController(tabControllers);
+
         public PreferencesWindowController(IntPtr handle) : base(handle)
         {
         }
@@ -20,13 +21,11 @@ namespace Barista.MacOS.Preferences
         {
         }
 
-        public PreferencesWindowController() : base("PreferencesWindow")
+        public PreferencesWindowController(IEnumerable<IPreferencesTab> tabControllers) : base("PreferencesWindow")
         {
-            tabs.Add(new GeneralViewController());
-            tabs.Add(new PluginViewController());
-
+            _tabControllers = tabControllers;
             base.Window = new PreferencesWindow(
-                tabs.First().View.Bounds,
+                tabControllers.First().View.Bounds,
                 NSWindowStyle.Titled | NSWindowStyle.Closable | NSWindowStyle.Miniaturizable,
                 NSBackingStore.Buffered, false
             );
@@ -34,21 +33,24 @@ namespace Barista.MacOS.Preferences
             Window.AwakeFromNib();
         }
 
-        private readonly List<IPreferencesTab> tabs = new List<IPreferencesTab>();
-        private PreferencesToolbarDelegate toolbarDelegate;
+        private readonly IEnumerable<IPreferencesTab> _tabControllers;
+        private PreferencesToolbarDelegate _toolbarDelegate;
 
         public void Show()
         {
-            InitializeToolbar();
-            Window.Center();
+            if (Window.Toolbar == null)
+            {
+                InitializeToolbar();
+                Window.Center();
+            }
 
             ShowWindow(this);
         }
 
         private void InitializeToolbar()
         {
-            toolbarDelegate = new PreferencesToolbarDelegate(tabs);
-            toolbarDelegate.SelectionChanged += HandleSelectionChanged;
+            _toolbarDelegate = new PreferencesToolbarDelegate(_tabControllers);
+            _toolbarDelegate.SelectionChanged += HandleSelectionChanged;
 
             Window.Toolbar = CreateToolbar();
 
@@ -60,15 +62,15 @@ namespace Barista.MacOS.Preferences
             var tb = new NSToolbar("PreferencesToolbar")
             {
                 AllowsUserCustomization = false,
-                Delegate = toolbarDelegate,
-                SelectedItemIdentifier = tabs.First().Name
+                Delegate = _toolbarDelegate,
+                SelectedItemIdentifier = _tabControllers.First().Name
             };
             return tb;
         }
 
         private void HandleSelectionChanged(object sender, EventArgs e)
         {
-            var selectedTab = tabs.Single(s => s.Name.Equals(Window.Toolbar.SelectedItemIdentifier));
+            var selectedTab = _tabControllers.Single(s => s.Name.Equals(Window.Toolbar.SelectedItemIdentifier));
             Window.Title = selectedTab.Name;
             ShowSelectedTab(selectedTab);
         }

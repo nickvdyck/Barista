@@ -1,4 +1,4 @@
-namespace Barista.MacOS.Preferences.Tabs
+namespace Barista.MacOS.Views.Preferences
 {
 
     // Should subclass AppKit.NSViewController

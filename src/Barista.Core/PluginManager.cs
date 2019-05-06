@@ -5,7 +5,6 @@ using Barista.Core.FileSystem;
 using Barista.Core.Internal;
 using Barista.Core.Data;
 using System.Linq;
-using Barista.Core.Utils;
 using Barista.Core.Commands;
 using Barista.Core.Extensions;
 
@@ -87,7 +86,7 @@ namespace Barista
 
         private void StartCore()
         {
-            _timer = new Timer(100)
+            _timer = new Timer(300)
             {
                 AutoReset = true,
                 Enabled = true,
