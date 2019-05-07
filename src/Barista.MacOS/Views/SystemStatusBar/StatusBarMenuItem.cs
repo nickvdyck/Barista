@@ -1,19 +1,19 @@
-﻿using AppKit;
-using Barista.Core.Data;
-using Barista.Core.Extensions;
-using Barista.MacOS.Utils;
-using Foundation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AppKit;
+using Barista.Core.Data;
+using Barista.Core.Extensions;
+using Barista.MacOS.Utils;
+using Barista.MacOS.ViewModels;
+using Foundation;
 
-namespace Barista.MacOS
+namespace Barista.MacOS.Views.SystemStatusBar
 {
-    public class StatusItem : NSObject
+    public class StatusBarMenuItem : NSObject
     {
         private readonly NSStatusBar _statusBar;
         private readonly NSMenuItem _lastUpdated;
-        private readonly NSMenuItem _preferences;
 
         private NSStatusItem _mainMenu;
         private List<NSMenuItem> _menuItems = new List<NSMenuItem>();
@@ -21,13 +21,13 @@ namespace Barista.MacOS
 
         private DateTime _lastExecution = DateTime.Now;
 
-        private readonly Action<IPluginMenuItem> OnMenuItemClicked;
+        private readonly IObservable<IReadOnlyCollection<IPluginMenuItem>> _observable;
+        private readonly StatusBarViewModel ViewModel;
 
-        public StatusItem(IObservable<IReadOnlyCollection<IPluginMenuItem>> observable, Action<IPluginMenuItem> onMenuItemClicked, NSMenuItem preferences)
+        public StatusBarMenuItem(IObservable<IReadOnlyCollection<IPluginMenuItem>> observable, StatusBarViewModel viewModel)
         {
-            OnMenuItemClicked = onMenuItemClicked;
-            _preferences = preferences;
-
+            _observable = observable;
+            ViewModel = viewModel;
             _statusBar = NSStatusBar.SystemStatusBar;
             _lastUpdated = new NSMenuItem("LastUpdated")
             {
@@ -69,7 +69,7 @@ namespace Barista.MacOS
                         Title = title,
                     };
 
-                    if (item.IsCommand) nsMenuItem.Activated += (sender, e) => OnMenuItemClicked(item);
+                    if (item.IsCommand) nsMenuItem.Activated += (sender, e) => ViewModel.OnStatusItemClicked(item);
 
                     _menuItems.Add(nsMenuItem);
                 }
@@ -87,7 +87,7 @@ namespace Barista.MacOS
 
             _mainMenu.Menu.AddItem(NSMenuItem.SeparatorItem);
             _mainMenu.Menu.AddItem(_lastUpdated);
-            _mainMenu.Menu.AddItem(_preferences);
+            _mainMenu.Menu.AddBaristaSubMenu(ViewModel.OnRefreshAll, ViewModel.OnOpenPreferences, ViewModel.OnExit);
 
             _isOpen = true;
         }
@@ -98,9 +98,32 @@ namespace Barista.MacOS
             _isOpen = false;
         }
 
-        public void Draw()
+        class StatusBarMenuItemEvents : NSMenuDelegate
         {
-            var events = new StatusItemEvents
+
+            public Action<NSMenu> OnMenuWillOpen { get; set; }
+            public Action<NSMenu> OnMenuDidClose { get; set; }
+            public Action<NSMenu, NSMenuItem> OnMenuWillHighlight { get; set; }
+
+            public override void MenuWillOpen(NSMenu menu)
+            {
+                OnMenuWillOpen?.Invoke(menu);
+            }
+
+            public override void MenuDidClose(NSMenu menu)
+            {
+                OnMenuDidClose?.Invoke(menu);
+            }
+
+            public override void MenuWillHighlightItem(NSMenu menu, NSMenuItem item)
+            {
+                OnMenuWillHighlight?.Invoke(menu, item);
+            }
+        }
+        public void Show()
+        {
+
+            var events = new StatusBarMenuItemEvents
             {
                 OnMenuWillOpen = OnMenuWillOpen,
                 OnMenuDidClose = OnMenuDidClose

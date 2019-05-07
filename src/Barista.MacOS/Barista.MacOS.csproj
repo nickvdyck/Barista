@@ -77,6 +77,7 @@
     <Folder Include="Services\" />
     <Folder Include="ViewModels\" />
     <Folder Include="Views\Preferences\" />
+    <Folder Include="Views\SystemStatusBar\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -86,9 +87,6 @@
   <ItemGroup>
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
-    <Compile Include="StatusBar.cs" />
-    <Compile Include="StatusItem.cs" />
-    <Compile Include="StatusItemEvents.cs" />
     <Compile Include="Utils\TimeAgo.cs" />
     <Compile Include="Models\AppSettings.cs" />
     <Compile Include="Services\ISettingsService.cs" />
@@ -115,6 +113,10 @@
     <Compile Include="Views\Preferences\PreferencesWindow.cs" />
     <Compile Include="Views\Preferences\PreferencesWindowController.cs" />
     <Compile Include="Views\Preferences\PreferencesWindowFactory.cs" />
+    <Compile Include="Views\SystemStatusBar\BaristaSubMenu.cs" />
+    <Compile Include="ViewModels\StatusBarViewModel.cs" />
+    <Compile Include="Views\SystemStatusBar\SystemStatusBar.cs" />
+    <Compile Include="Views\SystemStatusBar\StatusBarMenuItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Views\Preferences\GeneralView.xib" />

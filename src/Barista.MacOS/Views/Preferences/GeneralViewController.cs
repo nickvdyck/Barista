@@ -46,7 +46,6 @@ namespace Barista.MacOS.Views.Preferences
 
         partial void OnBrowsePluginsClicked(NSObject sender)
         {
-            System.Diagnostics.Debug.WriteLine("OnBrowsePluginsClicked");
             var panel = NSOpenPanel.OpenPanel;
             panel.FloatingPanel = true;
             panel.CanChooseDirectories = true;
