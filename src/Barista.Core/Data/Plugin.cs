@@ -9,6 +9,7 @@ namespace Barista.Core.Data
         public string Schedule { get; internal set; }
         public PluginType Type { get; internal set; }
         public DateTime LastExecution { get; internal set; } = DateTime.MinValue;
+        public bool Enabled { get; set; } = true;
         internal int Interval { get; set; }
     }
 }

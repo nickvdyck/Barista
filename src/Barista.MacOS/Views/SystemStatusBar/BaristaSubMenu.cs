@@ -7,7 +7,7 @@ namespace Barista.MacOS.Views.SystemStatusBar
     {
         public static void AddBaristaSubMenu(
             this NSMenu menu,
-            Action OnRefresshAll,
+            Action OnRefreshAll,
             Action OnPreferences,
             Action OnQuit
         )
@@ -22,7 +22,7 @@ namespace Barista.MacOS.Views.SystemStatusBar
             {
                 Title = "Refresh All",
             };
-            refreshAll.Activated += (sender, e) => OnRefresshAll?.Invoke();
+            refreshAll.Activated += (sender, e) => OnRefreshAll?.Invoke();
 
             var settings = new NSMenuItem("Preferences")
             {
@@ -43,7 +43,6 @@ namespace Barista.MacOS.Views.SystemStatusBar
             baristaMenu.Submenu.AddItem(quit);
 
             menu.AddItem(baristaMenu);
-
         }
     }
 }

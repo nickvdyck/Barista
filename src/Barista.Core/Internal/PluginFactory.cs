@@ -7,7 +7,15 @@ namespace Barista.Core.Internal
     {
         public Plugin FromFilePath(string path)
         {
+            var enabled = true;
             var fileName = Path.GetFileName(path);
+
+            if (fileName.StartsWith("_"))
+            {
+                fileName = fileName.TrimStart('_');
+                enabled = false;
+            }
+
             var (name, schedule, type) = ParseFileName(fileName);
 
             return new Plugin
@@ -16,7 +24,8 @@ namespace Barista.Core.Internal
                 Name = name,
                 Schedule = schedule,
                 Type = GetPluginType(type),
-                Interval = ParseInterval(schedule)
+                Interval = ParseInterval(schedule),
+                Enabled = enabled,
             };
         }
 

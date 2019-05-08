@@ -7,6 +7,9 @@ using Barista.Core.Data;
 using System.Linq;
 using Barista.Core.Commands;
 using Barista.Core.Extensions;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("Barista.Core.Tests")]
 
 namespace Barista
 {

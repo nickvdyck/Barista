@@ -21,7 +21,10 @@ namespace Barista.MacOS.ViewModels
 
         public List<IObservable<IReadOnlyCollection<IPluginMenuItem>>> Plugins
         {
-            get => _pluginManager.GetPlugins().Select(plugin => _pluginManager.Monitor(plugin)).ToList();
+            get => _pluginManager.GetPlugins()
+                    .Where(plugin => plugin.Enabled)
+                    .Select(plugin => _pluginManager.Monitor(plugin))
+                    .ToList();
         }
 
         public void OnStatusItemClicked(IPluginMenuItem item)

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
-[assembly: InternalsVisibleTo("Barista.Core.Tests")]
 namespace Barista.Core.Extensions
 {
     internal static class EmojiStringExtensions
