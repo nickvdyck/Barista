@@ -57,6 +57,8 @@ namespace Barista.Core.Internal
                 {
                     observer.OnNext(menuItems);
                 }
+
+                process.Dispose();
             }
             catch (Exception ex)
             {

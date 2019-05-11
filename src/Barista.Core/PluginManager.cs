@@ -8,6 +8,7 @@ using System.Linq;
 using Barista.Core.Commands;
 using Barista.Core.Extensions;
 using System.Runtime.CompilerServices;
+using System.Collections.ObjectModel;
 
 [assembly: InternalsVisibleTo("Barista.Core.Tests")]
 
@@ -58,6 +59,16 @@ namespace Barista
         public IReadOnlyList<Plugin> GetPlugins()
         {
             return _plugins.Keys.ToList();
+        }
+
+        public ObservableCollection<Plugin> ListPlugins()
+        {
+            var collection = new ObservableCollection<Plugin>();
+            foreach (var plugin in _plugins.Keys)
+            {
+                collection.Add(plugin);
+            }
+            return collection;
         }
 
         public IObservable<IReadOnlyCollection<IPluginMenuItem>> Monitor(Plugin plugin)

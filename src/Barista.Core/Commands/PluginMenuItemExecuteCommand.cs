@@ -26,6 +26,7 @@ namespace Barista.Core.Commands
 
             var data = await process.StandardOutput.ReadToEndAsync();
             process.WaitForExit();
+            process.Dispose();
             return data;
         }
 

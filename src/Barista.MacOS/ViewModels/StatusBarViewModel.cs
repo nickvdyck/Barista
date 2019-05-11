@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using AppKit;
 using Barista.Core.Data;
@@ -17,11 +18,15 @@ namespace Barista.MacOS.ViewModels
         {
             _pluginManager = pluginManager;
             _preferencesWindowFactory = preferencesWindowFactory;
+
+            Plugins = new ReadOnlyObservableCollection<Plugin>(_pluginManager.ListPlugins());
         }
 
-        public List<IObservable<IReadOnlyCollection<IPluginMenuItem>>> Plugins
+        public ReadOnlyObservableCollection<Plugin> Plugins { get; private set; }
+
+        public List<IObservable<IReadOnlyCollection<IPluginMenuItem>>> PluginExecutions
         {
-            get => _pluginManager.GetPlugins()
+            get => _pluginManager.ListPlugins()
                     .Where(plugin => plugin.Enabled)
                     .Select(plugin => _pluginManager.Monitor(plugin))
                     .ToList();
