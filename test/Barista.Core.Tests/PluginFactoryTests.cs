@@ -1,5 +1,7 @@
 using Barista.Core.Data;
-using Barista.Core.Internal;
+using Barista.Core.FileSystem;
+using Barista.Core.Providers;
+using Moq;
 using Xunit;
 
 namespace Barista.Core.Tests
@@ -10,7 +12,8 @@ namespace Barista.Core.Tests
         public void PluginFactory_FromFilePath_CreatesAPluginWithCorrectDefaultSettings()
         {
             // Given
-            var factory = new PluginFactory();
+            var provider = new Mock<IFileProvider>();
+            var factory = new PluginFileSystemProvider(provider.Object);
 
             // When
             var plugin = factory.FromFilePath("emoji.sh");
@@ -26,7 +29,8 @@ namespace Barista.Core.Tests
         public void PluginFactory_FromFilePath_CreatesAPluginWithCorrectInterval()
         {
             // Given
-            var factory = new PluginFactory();
+            var provider = new Mock<IFileProvider>();
+            var factory = new PluginFileSystemProvider(provider.Object);
 
             // When
             var plugin = factory.FromFilePath("emoji.20s.sh");
@@ -48,7 +52,8 @@ namespace Barista.Core.Tests
         public void PluginFactory_FromFilePath_CreatesAPluginWithTheCorrectType()
         {
             // Given
-            var factory = new PluginFactory();
+            var provider = new Mock<IFileProvider>();
+            var factory = new PluginFileSystemProvider(provider.Object);
 
             // When
             var plugin = factory.FromFilePath("snake.py");
@@ -66,7 +71,8 @@ namespace Barista.Core.Tests
         public void PluginFactory_FromFilePath_UnderscoreDisablesAPlugin()
         {
             // Given
-            var factory = new PluginFactory();
+            var provider = new Mock<IFileProvider>();
+            var factory = new PluginFileSystemProvider(provider.Object);
 
             // When
             var plugin = factory.FromFilePath("enabled.sh");

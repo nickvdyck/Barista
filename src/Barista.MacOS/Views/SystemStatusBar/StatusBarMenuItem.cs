@@ -13,89 +13,68 @@ namespace Barista.MacOS.Views.SystemStatusBar
     public class StatusBarMenuItem : NSObject
     {
         private readonly NSStatusBar _statusBar;
-        private readonly NSMenuItem _lastUpdated;
+        private readonly NSStatusItem _mainMenu;
+        private readonly StatusItemViewModel ViewModel;
 
-        private NSStatusItem _mainMenu;
-        private List<NSMenuItem> _menuItems = new List<NSMenuItem>();
-        private bool _isOpen;
+        private readonly IDisposable _titleObserver;
 
-        private DateTime _lastExecution = DateTime.Now;
-
-        private readonly IObservable<IReadOnlyCollection<IPluginMenuItem>> _observable;
-        private readonly StatusBarViewModel ViewModel;
-
-        public StatusBarMenuItem(IObservable<IReadOnlyCollection<IPluginMenuItem>> observable, StatusBarViewModel viewModel)
+        public StatusBarMenuItem(StatusItemViewModel viewModel)
         {
-            _observable = observable;
             ViewModel = viewModel;
             _statusBar = NSStatusBar.SystemStatusBar;
-            _lastUpdated = new NSMenuItem("LastUpdated")
-            {
-                Title = $"Updated {TimeAgo.Format(_lastExecution)}",
-            };
+            _mainMenu = _statusBar.CreateStatusItem(NSStatusItemLength.Variable);
 
-            observable.Subscribe(OnNextPluginExecution);
+            _titleObserver = ViewModel.AddObserver("IconAndTitle", NSKeyValueObservingOptions.New, OnTitleChanged);
+
+            //_mainMenu.Button.Bind((NSString)"Title", ViewModel, "IconAndTitle", null);
+            System.Diagnostics.Debug.WriteLine($"Adding menu item for {viewModel.Plugin.Name}");
         }
 
-        private void OnNextPluginExecution(IReadOnlyCollection<IPluginMenuItem> result)
+        private void OnTitleChanged(NSObservedChange change)
         {
-            _lastExecution = DateTime.Now;
-            var first = result.FirstOrDefault();
-            InvokeOnMainThread(() =>
+            InvokeOnMainThread(() => _mainMenu.Button.Title = ViewModel.IconAndTitle);
+        }
+
+        private void OnMenuWillOpen(NSMenu _)
+        {
+            // _lastUpdated.Title = $"Updated {TimeAgo.Format(_lastExecution)}";
+            var menuItems = new List<NSMenuItem>();
+
+            foreach (var itemCollection in ViewModel.Items)
             {
-                _mainMenu.Button.Title = first.Title;
-                _lastUpdated.Title = $"Updated {TimeAgo.Format(_lastExecution)}";
-            });
-
-            if (_isOpen) return;
-
-            _menuItems.Clear();
-
-            foreach (var item in result.Skip(1))
-            {
-                if (item == PluginMenuItemBase.Separator)
-                {
-                    _menuItems.Add(NSMenuItem.SeparatorItem);
-                }
-                else
+                foreach (var item in itemCollection)
                 {
                     var title = item.Title;
                     if (item.Title.Length > item.Length)
                         title = item.Title.Substring(0, item.Length) + " ...";
-
 
                     var nsMenuItem = new NSMenuItem(item.Title)
                     {
                         Title = title,
                     };
 
-                    if (item.IsCommand) nsMenuItem.Activated += (sender, e) => ViewModel.OnStatusItemClicked(item);
+                    if (item.Type != ItemType.Empty) nsMenuItem.Activated += (sender, e) => ViewModel.OnStatusItemClicked(item);
 
-                    _menuItems.Add(nsMenuItem);
+                    _mainMenu.Menu.AddItem(nsMenuItem);
+
                 }
+                _mainMenu.Menu.AddItem(NSMenuItem.SeparatorItem);
             }
-        }
 
-        private void OnMenuWillOpen(NSMenu _)
-        {
-            _lastUpdated.Title = $"Updated {TimeAgo.Format(_lastExecution)}";
+            // _mainMenu.Menu.AddItem(_lastUpdated);
 
-            foreach (var item in _menuItems)
+            var baristaSubMenu = new BaristaSubmenuView()
             {
-                _mainMenu.Menu.AddItem(item);
-            }
-
-            _mainMenu.Menu.AddItem(NSMenuItem.SeparatorItem);
-            _mainMenu.Menu.AddItem(_lastUpdated);
-            _mainMenu.Menu.AddBaristaSubMenu(ViewModel.OnRefreshAll, ViewModel.OnOpenPreferences, ViewModel.OnExit);
-
-            _isOpen = true;
+                OnRefreshAllClicked = ViewModel.OnRefreshAll,
+                OnPreferencesClicked = ViewModel.OnOpenPreferences,
+                OnQuitClicked = ViewModel.OnExit
+            };
+            _mainMenu.Menu.AddItem(baristaSubMenu);
         }
 
         private void OnMenuDidClose(NSMenu _)
         {
             _mainMenu.Menu.RemoveAllItems();
-            _isOpen = false;
         }
 
         class StatusBarMenuItemEvents : NSMenuDelegate
@@ -122,21 +101,25 @@ namespace Barista.MacOS.Views.SystemStatusBar
         }
         public void Show()
         {
-
             var events = new StatusBarMenuItemEvents
             {
                 OnMenuWillOpen = OnMenuWillOpen,
                 OnMenuDidClose = OnMenuDidClose
             };
 
-            _mainMenu = _statusBar.CreateStatusItem(NSStatusItemLength.Variable);
-
-            _mainMenu.Button.Title = "...";
+            _mainMenu.Button.Title = ViewModel.IconAndTitle;
 
             _mainMenu.Menu = new NSMenu()
             {
                 Delegate = events,
             };
+        }
+
+        public new void Dispose()
+        {
+            System.Diagnostics.Debug.WriteLine($"Disposing menu item for {ViewModel.Plugin.Name}");
+            _titleObserver.Dispose();
+            base.Dispose();
         }
     }
 }

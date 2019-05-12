@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Barista.Core.Commands;
 using Barista.Core.Extensions;
-using Barista.Core.Utils;
 
 namespace Barista.Core.Data
 {
-    public class PluginMenuItemBase : IPluginMenuItem
+    public abstract class ItemBase
     {
-        public static IPluginMenuItem Separator = new PluginMenuItemBase();
         internal Dictionary<string, string> Settings = new Dictionary<string, string>();
 
         public string OriginalTitle { get; internal set; } = string.Empty;
@@ -55,22 +52,6 @@ namespace Barista.Core.Data
                 return 50;
             }
 
-        }
-
-        public bool IsCommand
-        {
-            get
-            {
-                return this.Refresh || this.BashScript != string.Empty || this.Href != string.Empty;
-            }
-        }
-
-        public ICommand Command
-        {
-            get
-            {
-                return new PluginMenuItemExecuteCommand(this);
-            }
         }
 
         public bool Refresh
@@ -166,7 +147,7 @@ namespace Barista.Core.Data
                 }
                 return false;
             }
-
         }
+
     }
 }

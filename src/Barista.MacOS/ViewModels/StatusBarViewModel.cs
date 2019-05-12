@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using AppKit;
+using Barista.Core;
 using Barista.Core.Data;
+using Barista.Core.Events;
+using Barista.Core.Extensions;
+using Barista.MacOS.Utils;
 using Barista.MacOS.Views.Preferences;
 using Foundation;
 
@@ -11,33 +15,57 @@ namespace Barista.MacOS.ViewModels
 {
     public class StatusBarViewModel : NSObject
     {
-        private readonly PluginManager _pluginManager;
-        private readonly PreferencesWindowFactory _preferencesWindowFactory;
+        public IReadOnlyCollection<Plugin> Plugins
+        {
+            get => _pluginManager.ListPlugins().Where(plugin => plugin.Enabled).ToList();
+        }
 
-        public StatusBarViewModel(PluginManager pluginManager, PreferencesWindowFactory preferencesWindowFactory)
+        private readonly IPluginManager _pluginManager;
+        private readonly PreferencesWindowFactory _preferencesWindowFactory;
+        public ObservableCollection<StatusItemViewModel> StatusItems = new ObservableCollection<StatusItemViewModel>();
+
+        public StatusBarViewModel(IPluginManager pluginManager, PreferencesWindowFactory preferencesWindowFactory)
         {
             _pluginManager = pluginManager;
             _preferencesWindowFactory = preferencesWindowFactory;
 
-            Plugins = new ReadOnlyObservableCollection<Plugin>(_pluginManager.ListPlugins());
-        }
-
-        public ReadOnlyObservableCollection<Plugin> Plugins { get; private set; }
-
-        public List<IObservable<IReadOnlyCollection<IPluginMenuItem>>> PluginExecutions
-        {
-            get => _pluginManager.ListPlugins()
-                    .Where(plugin => plugin.Enabled)
-                    .Select(plugin => _pluginManager.Monitor(plugin))
-                    .ToList();
-        }
-
-        public void OnStatusItemClicked(IPluginMenuItem item)
-        {
-            if (item.IsCommand)
+            foreach (var plugin in Plugins)
             {
-                _pluginManager.InvokeCommand(item.Command);
+                StatusItems.Add(new StatusItemViewModel(pluginManager, preferencesWindowFactory)
+                {
+                    Plugin = plugin
+                });
             }
+
+            _pluginManager.Monitor().Subscribe(OnPluginMonitorEvent);
+        }
+
+        public void OnPluginMonitorEvent(IPluginEvent e)
+        {
+            switch(e)
+            {
+                case PluginExecutedEvent executedEvent:
+                    OnPluginExecuted(executedEvent);
+                    break;
+            }
+        }
+
+        public void OnPluginExecuted(PluginExecutedEvent e)
+        {
+            var item = StatusItems.FirstOrDefault(s => s.Plugin.Name == e.Plugin.Name);
+
+            item.Plugin = e.Plugin;
+
+            var titleItem = e.Execution.Items.FirstOrDefault().FirstOrDefault();
+
+            item.IconAndTitle = titleItem.Title;
+            item.LastExecution = $"Updated {TimeAgo.Format(e.Plugin.LastExecution)}";
+            item.Items = e.Execution.Items.Skip(1).ToList();
+        }
+
+        public void OnStatusItemClicked(Item item)
+        {
+            _pluginManager.Execute(item);
         }
 
         public void OnOpenPreferences()
@@ -49,8 +77,20 @@ namespace Barista.MacOS.ViewModels
             controller.Window.MakeKeyAndOrderFront(this);
         }
 
-        public void OnRefreshAll() => _pluginManager.RunAll();
+        public void OnRefreshAll()
+        {
+            foreach (var plugin in Plugins)
+            {
+                _pluginManager.Execute(plugin);
+            }
+        }
 
         public void OnExit() => NSApplication.SharedApplication.Terminate(NSApplication.SharedApplication);
+
+        public new void Dispose()
+        {
+
+            base.Dispose();
+        }
     }
 }

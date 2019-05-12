@@ -1,5 +1,6 @@
 using AppKit;
 using Autofac;
+using Barista.Core;
 using Barista.MacOS.Services;
 using Barista.MacOS.ViewModels;
 using Barista.MacOS.Views.Preferences;
@@ -25,15 +26,15 @@ namespace Barista.MacOS
 
             // ViewModels
             builder.RegisterType<GeneralPreferencesViewModel>().AsSelf();
-            builder.RegisterType<StatusBarViewModel>().AsSelf();
+             builder.RegisterType<StatusBarViewModel>().AsSelf();
 
             // Services
             builder.RegisterType<DefaultsService>().As<ISettingsService>();
             builder.Register(s =>
             {
                 var settings = s.Resolve<ISettingsService>().GetSettings();
-                return PluginManager.CreateAtDirectory(settings.PluginDirectory);
-            }).As<PluginManager>().SingleInstance();
+                return PluginManager.CreateForDirectory(settings.PluginDirectory);
+            }).As<IPluginManager>().SingleInstance();
 
             container = builder.Build();
         }
@@ -41,10 +42,10 @@ namespace Barista.MacOS
         public override void DidFinishLaunching(NSNotification notification)
         {
             var statusBar = container.Resolve<SystemStatusBar>();
-            var pluginManager = container.Resolve<PluginManager>();
+            var pluginManager = container.Resolve<IPluginManager>();
 
             statusBar.Show();
-            pluginManager.Start();
+            pluginManager.Execute();
         }
 
         public override void WillTerminate(NSNotification notification)

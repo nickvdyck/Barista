@@ -1,10 +1,12 @@
+using System.Collections.Immutable;
 using System.IO;
 using Barista.Core.Data;
 
-namespace Barista.Core.Internal
+namespace Barista.Core.Providers
 {
-    internal class PluginFactory : IPluginFactory
+    public abstract class BasePluginProvider : IPluginProvider
     {
+        public abstract ImmutableList<Plugin> ListPlugins();
         public Plugin FromFilePath(string path)
         {
             var enabled = true;

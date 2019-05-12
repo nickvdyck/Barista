@@ -55,6 +55,9 @@
     <Reference Include="Autofac">
       <HintPath>..\..\packages\Autofac.4.9.2\lib\netstandard2.0\Autofac.dll</HintPath>
     </Reference>
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>..\..\packages\System.Collections.Immutable.1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
@@ -113,14 +116,16 @@
     <Compile Include="Views\Preferences\PreferencesWindow.cs" />
     <Compile Include="Views\Preferences\PreferencesWindowController.cs" />
     <Compile Include="Views\Preferences\PreferencesWindowFactory.cs" />
-    <Compile Include="Views\SystemStatusBar\BaristaSubMenu.cs" />
+    <Compile Include="Views\SystemStatusBar\BaristaSubMenuView.cs" />
     <Compile Include="ViewModels\StatusBarViewModel.cs" />
     <Compile Include="Views\SystemStatusBar\SystemStatusBar.cs" />
     <Compile Include="Views\SystemStatusBar\StatusBarMenuItem.cs" />
+    <Compile Include="ViewModels\StatusItemViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Views\Preferences\GeneralView.xib" />
     <InterfaceDefinition Include="Views\Preferences\PluginView.xib" />
+    <InterfaceDefinition Include="Main.storyboard" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Barista.Core\Barista.Core.csproj">

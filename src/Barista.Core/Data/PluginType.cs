@@ -2,9 +2,9 @@ namespace Barista.Core.Data
 {
     public enum PluginType
     {
+        Unknown,
         Shell,
         Python,
-        Unknown,
         Invalid,
         JavaScript,
     }

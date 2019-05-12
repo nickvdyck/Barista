@@ -12,7 +12,6 @@ namespace Barista.MacOS.Views.SystemStatusBar
         {
             ViewModel = viewModel;
 
-            ((INotifyCollectionChanged)ViewModel.Plugins).CollectionChanged += OnPluginCollectionChanged;
         }
 
         public void OnPluginCollectionChanged(object sender, NotifyCollectionChangedEventArgs ev)
@@ -27,9 +26,9 @@ namespace Barista.MacOS.Views.SystemStatusBar
 
         public void Show()
         {
-            foreach (var execution in ViewModel.PluginExecutions)
+            foreach (var statusItemViewModel in ViewModel.StatusItems)
             {
-                var item = new StatusBarMenuItem(execution, ViewModel);
+                var item = new StatusBarMenuItem(statusItemViewModel);
 
                 item.Show();
             }

@@ -2,122 +2,100 @@
 using System.Collections.Generic;
 using System.Timers;
 using Barista.Core.FileSystem;
-using Barista.Core.Internal;
 using Barista.Core.Data;
 using System.Linq;
 using Barista.Core.Commands;
 using Barista.Core.Extensions;
 using System.Runtime.CompilerServices;
 using System.Collections.ObjectModel;
+using Barista.Core.Providers;
+using Barista.Core.Events;
+using Barista.Core.Execution;
+using System.Diagnostics;
 
 [assembly: InternalsVisibleTo("Barista.Core.Tests")]
 
-namespace Barista
+namespace Barista.Core
 {
-    public sealed class PluginManager
+    public sealed class PluginManager : IPluginManager, IDisposable
     {
-        public static PluginManager CreateAtDirectory(string pluginDirectory)
+        public static PluginManager CreateForDirectory(string pluginDirectory)
         {
-            var provider = new LocalFileProvider(pluginDirectory);
-            var factory = new PluginFactory();
-            return new PluginManager(provider, factory);
+            var fileProvider = new LocalFileProvider(pluginDirectory);
+            var pluginProvider = new PluginFileSystemProvider(fileProvider);
+            var monitor = new PluginEventsMonitor();
+            var handler = new ProcessExecutionHandler(monitor);
+            var executePluginCommand = new ExecutePluginCommand(handler);
+            var executeItemCommand = new ExecuteItemCommand(handler);
+
+            return new PluginManager(pluginProvider, monitor, executePluginCommand, executeItemCommand);
         }
 
-        private readonly IFileProvider _fileProvider;
-        private readonly IPluginFactory _pluginFactory;
-        private readonly Dictionary<Plugin, PluginExecutionHandler> _plugins = new Dictionary<Plugin, PluginExecutionHandler>();
         private Timer _timer;
+        private readonly IPluginProvider _pluginProvider;
+        private readonly IObservable<IPluginEvent> _monitor;
+        private readonly ExecutePluginCommand _executePluginCommand;
+        private readonly ExecuteItemCommand _executeItemCommand;
 
-        internal PluginManager(IFileProvider pluginFileProvider, IPluginFactory pluginFactory)
+        internal PluginManager(IPluginProvider pluginProvider, IObservable<IPluginEvent> monitor, ExecutePluginCommand executePluginCommand, ExecuteItemCommand executeItemCommand)
         {
-            _fileProvider = pluginFileProvider;
-            _pluginFactory = pluginFactory;
-            Load();
+            _pluginProvider = pluginProvider;
+            _monitor = monitor;
+            _executePluginCommand = executePluginCommand;
+            _executeItemCommand = executeItemCommand;
         }
 
-        internal void Load()
+        public IReadOnlyCollection<Plugin> ListPlugins() =>
+            _pluginProvider.ListPlugins();
+
+        public void Execute(int interval)
         {
-            var files = _fileProvider.GetDirectoryContents();
+            if (_timer != null) return;
 
-            if (!files.Exists) throw new Exception("Wow something went wrong, it looks like your plugin directory does not exist!");
-
-            foreach (var file in files)
-            {
-                if (file.IsDirectory) continue;
-                var plugin = _pluginFactory.FromFilePath(file.PhysicalPath);
-                var handler = new PluginExecutionHandler(plugin, new PluginOutputParser());
-
-                _plugins.Add(plugin, handler);
-            }
-        }
-
-        public void InvokeCommand(ICommand command)
-        {
-            command.Execute().Forget();
-        }
-
-        public IReadOnlyList<Plugin> GetPlugins()
-        {
-            return _plugins.Keys.ToList();
-        }
-
-        public ObservableCollection<Plugin> ListPlugins()
-        {
-            var collection = new ObservableCollection<Plugin>();
-            foreach (var plugin in _plugins.Keys)
-            {
-                collection.Add(plugin);
-            }
-            return collection;
-        }
-
-        public IObservable<IReadOnlyCollection<IPluginMenuItem>> Monitor(Plugin plugin)
-        {
-            if (_plugins.TryGetValue(plugin, out var handler))
-            {
-                return handler;
-            }
-
-            return null;
-        }
-
-        public void RunAll()
-        {
-            _timer.Stop();
-
-            foreach (var plugin in _plugins)
-            {
-                plugin.Value.ExecutePlugin().Forget();
-            }
-
-            _timer.Start();
-        }
-
-        public void Start()
-        {
-            if (_timer == null) StartCore();
-        }
-
-        private void StartCore()
-        {
-            _timer = new Timer(300)
+            _timer = new Timer(interval)
             {
                 AutoReset = true,
                 Enabled = true,
             };
 
-            _timer.Elapsed += (sender, e) =>
-            {
-                foreach (var plugin in _plugins)
-                {
-                    var offset = DateTime.Now - plugin.Key.LastExecution;
+            _timer.Elapsed += RunPluginLoop;
+        }
 
-                    if (offset.TotalSeconds > plugin.Key.Interval)
-                    {
-                        plugin.Value.ExecutePlugin().Forget();
-                    }
+        private void RunPluginLoop(object sender, ElapsedEventArgs e)
+        {
+            //Debug.WriteLine($"Elapsed {e.SignalTime}");
+            foreach (var plugin in _pluginProvider.ListPlugins())
+            {
+                if (!plugin.Enabled) continue;
+
+                var offset = e.SignalTime - plugin.LastExecution;
+
+                if (offset.TotalSeconds > plugin.Interval)
+                {
+                    //System.Diagnostics.Debug.WriteLine($"RunLoop executing plugin {plugin.Name} offset {offset.TotalSeconds} interval {plugin.Interval}");
+                    Execute(plugin);
                 }
-            };
+            }
+        }
+
+        public void Execute(Plugin plugin)
+        {
+            _executePluginCommand.Plugin = plugin;
+            _executePluginCommand.Execute().Forget();
+        }
+
+        public void Execute(Item item)
+        {
+            _executeItemCommand.Item = item;
+            _executeItemCommand.Execute().Forget();
+        }
+
+        public IObservable<IPluginEvent> Monitor() => _monitor;
+
+        public void Dispose()
+        {
+            _timer.Elapsed -= RunPluginLoop;
+            _timer.Dispose();
         }
     }
 }
