@@ -59,7 +59,7 @@ namespace Barista.MacOS.ViewModels
             var titleItem = e.Execution.Items.FirstOrDefault().FirstOrDefault();
 
             item.IconAndTitle = titleItem.Title;
-            item.LastExecution = $"Updated {TimeAgo.Format(e.Plugin.LastExecution)}";
+            item.LastExecution = e.Plugin.LastExecution;
             item.Items = e.Execution.Items.Skip(1).ToList();
         }
 

@@ -17,10 +17,13 @@ clean:
 	rm -rf $(TEST_CORE)/obj
 	msbuild $(MACOSSLN) /t:Clean
 
-build:
+restore:
+	nuget restore $(MACOSSLN)
+
+build: restore
 	msbuild $(MACOSSLN) /restore:True
 
-default:
+default: restore
 	msbuild $(MACOSSLN) /restore:True /p:Configuration=Release
 
 test:
@@ -30,5 +33,5 @@ install:
 	open ./.build/bin/Barista.MacOS/Release/Barista-1.0.0.pkg
 
 uninstall:
-	sudo rm -rf /Application/Barista.app
+	sudo rm -rf /Applications/Barista.app
 	sudo pkgutil --forget codes.nvd.Barista

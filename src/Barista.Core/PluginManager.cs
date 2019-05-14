@@ -63,16 +63,14 @@ namespace Barista.Core
 
         private void RunPluginLoop(object sender, ElapsedEventArgs e)
         {
-            //Debug.WriteLine($"Elapsed {e.SignalTime}");
             foreach (var plugin in _pluginProvider.ListPlugins())
             {
                 if (!plugin.Enabled) continue;
 
-                var offset = e.SignalTime - plugin.LastExecution;
+                var offset = DateTime.Now - plugin.LastExecution;
 
-                if (offset.TotalSeconds > plugin.Interval)
+                if (offset.TotalSeconds >= plugin.Interval)
                 {
-                    //System.Diagnostics.Debug.WriteLine($"RunLoop executing plugin {plugin.Name} offset {offset.TotalSeconds} interval {plugin.Interval}");
                     Execute(plugin);
                 }
             }

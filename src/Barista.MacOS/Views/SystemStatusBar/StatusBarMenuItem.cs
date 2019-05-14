@@ -25,9 +25,6 @@ namespace Barista.MacOS.Views.SystemStatusBar
             _mainMenu = _statusBar.CreateStatusItem(NSStatusItemLength.Variable);
 
             _titleObserver = ViewModel.AddObserver("IconAndTitle", NSKeyValueObservingOptions.New, OnTitleChanged);
-
-            //_mainMenu.Button.Bind((NSString)"Title", ViewModel, "IconAndTitle", null);
-            System.Diagnostics.Debug.WriteLine($"Adding menu item for {viewModel.Plugin.Name}");
         }
 
         private void OnTitleChanged(NSObservedChange change)
@@ -37,7 +34,6 @@ namespace Barista.MacOS.Views.SystemStatusBar
 
         private void OnMenuWillOpen(NSMenu _)
         {
-            // _lastUpdated.Title = $"Updated {TimeAgo.Format(_lastExecution)}";
             var menuItems = new List<NSMenuItem>();
 
             foreach (var itemCollection in ViewModel.Items)
@@ -61,7 +57,10 @@ namespace Barista.MacOS.Views.SystemStatusBar
                 _mainMenu.Menu.AddItem(NSMenuItem.SeparatorItem);
             }
 
-            // _mainMenu.Menu.AddItem(_lastUpdated);
+            _mainMenu.Menu.AddItem(new NSMenuItem("LastUpdated")
+            {
+                Title = ViewModel.ExecutedTimeAgo,
+            });
 
             var baristaSubMenu = new BaristaSubmenuView()
             {

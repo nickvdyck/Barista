@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using AppKit;
 using Barista.Core;
 using Barista.Core.Data;
+using Barista.MacOS.Utils;
 using Barista.MacOS.Views.Preferences;
 using Foundation;
 
@@ -26,7 +28,15 @@ namespace Barista.MacOS.ViewModels
             }
         }
 
-        public string LastExecution { get; set; }
+        public string ExecutedTimeAgo
+        {
+            get
+            {
+                return $"Updated {TimeAgo.Format(LastExecution)}";
+            }
+        }
+
+        public DateTime LastExecution { get; set; }
         public IReadOnlyCollection<IReadOnlyCollection<Item>> Items { get; set; }
         public Plugin Plugin { get; set; }
 
