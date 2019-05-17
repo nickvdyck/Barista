@@ -2,6 +2,7 @@ using AppKit;
 using Autofac;
 using Barista.Core;
 using Barista.MacOS.Services;
+using Barista.MacOS.Utils;
 using Barista.MacOS.ViewModels;
 using Barista.MacOS.Views.Preferences;
 using Barista.MacOS.Views.SystemStatusBar;
@@ -26,15 +27,20 @@ namespace Barista.MacOS
 
             // ViewModels
             builder.RegisterType<GeneralPreferencesViewModel>().AsSelf();
-             builder.RegisterType<StatusBarViewModel>().AsSelf();
+            builder.RegisterType<StatusBarViewModel>().AsSelf();
 
             // Services
             builder.RegisterType<DefaultsService>().As<ISettingsService>();
-            builder.Register(s =>
-            {
-                var settings = s.Resolve<ISettingsService>().GetSettings();
-                return PluginManager.CreateForDirectory(settings.PluginDirectory);
-            }).As<IPluginManager>().SingleInstance();
+            builder
+                .Register(s =>
+                {
+                    var settings = s.Resolve<ISettingsService>().GetSettings();
+                    var watcher = new FileSystemWatcher(settings.PluginDirectory);
+                    return PluginManager.CreateForDirectory(settings.PluginDirectory, watcher);
+                })
+                .OnActivated(ctx => ctx.Instance.Execute(200))
+                .As<IPluginManager>()
+                .SingleInstance();
 
             container = builder.Build();
         }
@@ -42,10 +48,10 @@ namespace Barista.MacOS
         public override void DidFinishLaunching(NSNotification notification)
         {
             var statusBar = container.Resolve<SystemStatusBar>();
-            var pluginManager = container.Resolve<IPluginManager>();
+            //var pluginManager = container.Resolve<IPluginManager>();
 
             statusBar.Show();
-            pluginManager.Execute();
+            // pluginManager.Execute();
         }
 
         public override void WillTerminate(NSNotification notification)

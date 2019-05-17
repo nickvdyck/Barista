@@ -14,7 +14,7 @@ namespace Barista.MacOS.Views.SystemStatusBar
     {
         private readonly NSStatusBar _statusBar;
         private readonly NSStatusItem _mainMenu;
-        private readonly StatusItemViewModel ViewModel;
+        public StatusItemViewModel ViewModel;
 
         private readonly IDisposable _titleObserver;
 
@@ -117,7 +117,9 @@ namespace Barista.MacOS.Views.SystemStatusBar
         public new void Dispose()
         {
             System.Diagnostics.Debug.WriteLine($"Disposing menu item for {ViewModel.Plugin.Name}");
+            _statusBar.RemoveStatusItem(_mainMenu);
             _titleObserver.Dispose();
+            ViewModel.Dispose();
             base.Dispose();
         }
     }

@@ -1,18 +1,23 @@
 using System;
 using System.Collections.Immutable;
 using Barista.Core.Data;
+using Barista.Core.Events;
 using Barista.Core.FileSystem;
 
 namespace Barista.Core.Providers
 {
-    internal class PluginFileSystemProvider : BasePluginProvider
+    internal class PluginFileSystemProvider : BasePluginProvider, IDisposable
     {
         private readonly IFileProvider _fileProvider;
         private ImmutableList<Plugin> _pluginCache;
+        private IDisposable _watcherDisposer;
+        private readonly PluginEventsMonitor _eventsMonitor;
 
-        public PluginFileSystemProvider(IFileProvider fileProvider)
+        public PluginFileSystemProvider(IFileProvider fileProvider, PluginEventsMonitor eventsMonitor)
         {
             _fileProvider = fileProvider;
+            _watcherDisposer = _fileProvider.Watch(OnPluginChanged);
+            _eventsMonitor = eventsMonitor;
         }
 
         public override ImmutableList<Plugin> ListPlugins()
@@ -34,6 +39,17 @@ namespace Barista.Core.Providers
 
             _pluginCache = builder.ToImmutable();
             return _pluginCache;
+        }
+
+        public void OnPluginChanged()
+        {
+            _pluginCache = null;
+            _eventsMonitor.PluginsChanged();
+        }
+
+        public void Dispose()
+        {
+            _watcherDisposer.Dispose();
         }
     }
 }

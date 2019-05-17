@@ -30,6 +30,16 @@ namespace Barista.Core.Events
                 observer.OnNext(e);
             }
         }
+
+        public void PluginsChanged()
+        {
+            var e = new PluginChangedEvent();
+
+            foreach (var observer in _observers)
+            {
+                observer.OnNext(e);
+            }
+        }
     }
 
     internal class PluginEventsMonitorUnsubscriber<T> : IDisposable

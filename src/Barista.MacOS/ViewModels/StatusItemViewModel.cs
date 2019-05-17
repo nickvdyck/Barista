@@ -37,7 +37,7 @@ namespace Barista.MacOS.ViewModels
         }
 
         public DateTime LastExecution { get; set; }
-        public IReadOnlyCollection<IReadOnlyCollection<Item>> Items { get; set; }
+        public IReadOnlyCollection<IReadOnlyCollection<Item>> Items { get; set; } 
         public Plugin Plugin { get; set; }
 
         private readonly IPluginManager _pluginManager;
@@ -47,6 +47,7 @@ namespace Barista.MacOS.ViewModels
         {
             _pluginManager = pluginManager;
             _preferencesWindowFactory = preferencesWindowFactory;
+            Items = new List<List<Item>>();
         }
 
         public void OnStatusItemClicked(Item item)

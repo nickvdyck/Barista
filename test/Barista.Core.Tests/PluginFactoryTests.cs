@@ -1,4 +1,5 @@
 using Barista.Core.Data;
+using Barista.Core.Events;
 using Barista.Core.FileSystem;
 using Barista.Core.Providers;
 using Moq;
@@ -13,7 +14,8 @@ namespace Barista.Core.Tests
         {
             // Given
             var provider = new Mock<IFileProvider>();
-            var factory = new PluginFileSystemProvider(provider.Object);
+            var monitor = new Mock<PluginEventsMonitor>();
+            var factory = new PluginFileSystemProvider(provider.Object, monitor.Object);
 
             // When
             var plugin = factory.FromFilePath("emoji.sh");
@@ -30,7 +32,8 @@ namespace Barista.Core.Tests
         {
             // Given
             var provider = new Mock<IFileProvider>();
-            var factory = new PluginFileSystemProvider(provider.Object);
+            var monitor = new Mock<PluginEventsMonitor>();
+            var factory = new PluginFileSystemProvider(provider.Object, monitor.Object);
 
             // When
             var plugin = factory.FromFilePath("emoji.20s.sh");
@@ -53,7 +56,8 @@ namespace Barista.Core.Tests
         {
             // Given
             var provider = new Mock<IFileProvider>();
-            var factory = new PluginFileSystemProvider(provider.Object);
+            var monitor = new Mock<PluginEventsMonitor>();
+            var factory = new PluginFileSystemProvider(provider.Object, monitor.Object);
 
             // When
             var plugin = factory.FromFilePath("snake.py");
@@ -72,7 +76,8 @@ namespace Barista.Core.Tests
         {
             // Given
             var provider = new Mock<IFileProvider>();
-            var factory = new PluginFileSystemProvider(provider.Object);
+            var monitor = new Mock<PluginEventsMonitor>();
+            var factory = new PluginFileSystemProvider(provider.Object, monitor.Object);
 
             // When
             var plugin = factory.FromFilePath("enabled.sh");

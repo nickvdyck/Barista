@@ -28,10 +28,13 @@ namespace Barista.MacOS.ViewModels
         {
             _pluginManager = pluginManager;
             _preferencesWindowFactory = preferencesWindowFactory;
+        }
 
+        public void Load()
+        {
             foreach (var plugin in Plugins)
             {
-                StatusItems.Add(new StatusItemViewModel(pluginManager, preferencesWindowFactory)
+                StatusItems.Add(new StatusItemViewModel(_pluginManager, _preferencesWindowFactory)
                 {
                     Plugin = plugin
                 });
@@ -42,10 +45,14 @@ namespace Barista.MacOS.ViewModels
 
         public void OnPluginMonitorEvent(IPluginEvent e)
         {
-            switch(e)
+            switch (e)
             {
                 case PluginExecutedEvent executedEvent:
                     OnPluginExecuted(executedEvent);
+                    break;
+
+                case PluginChangedEvent changedEvent:
+                    OnPluginChanged(changedEvent);
                     break;
             }
         }
@@ -53,14 +60,55 @@ namespace Barista.MacOS.ViewModels
         public void OnPluginExecuted(PluginExecutedEvent e)
         {
             var item = StatusItems.FirstOrDefault(s => s.Plugin.Name == e.Plugin.Name);
-
             item.Plugin = e.Plugin;
 
-            var titleItem = e.Execution.Items.FirstOrDefault().FirstOrDefault();
+            if (e.Execution.Success == true)
+            {
+                var titleItem = e.Execution.Items.FirstOrDefault().FirstOrDefault();
 
-            item.IconAndTitle = titleItem.Title;
-            item.LastExecution = e.Plugin.LastExecution;
-            item.Items = e.Execution.Items.Skip(1).ToList();
+                item.IconAndTitle = titleItem.Title;
+                item.LastExecution = e.Plugin.LastExecution;
+                item.Items = e.Execution.Items.Skip(1).ToList();
+            }
+            else
+            {
+                item.IconAndTitle = "⚠️";
+                item.LastExecution = DateTime.Now;
+                item.Items = e.Execution.Items;
+            }
+        }
+
+
+        public void OnPluginChanged(PluginChangedEvent e)
+        {
+            var toRemove = new List<StatusItemViewModel>();
+            foreach (var item in StatusItems)
+            {
+                var plugin = Plugins.FirstOrDefault(p => p.Name == item.Plugin.Name);
+
+                if (plugin == null)
+                {
+                    toRemove.Add(item);
+                }
+            }
+
+            foreach (var item in toRemove)
+            {
+                StatusItems.Remove(item);
+            }
+
+            foreach (var plugin in Plugins)
+            {
+                var item = StatusItems.FirstOrDefault(s => s.Plugin.Name == plugin.Name);
+
+                if (item == null)
+                {
+                    StatusItems.Add(new StatusItemViewModel(_pluginManager, _preferencesWindowFactory)
+                    {
+                        Plugin = plugin
+                    });
+                }
+            }
         }
 
         public void OnStatusItemClicked(Item item)

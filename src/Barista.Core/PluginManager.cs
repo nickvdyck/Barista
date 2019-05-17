@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Timers;
-using Barista.Core.FileSystem;
+﻿using Barista.Core.Commands;
 using Barista.Core.Data;
-using System.Linq;
-using Barista.Core.Commands;
-using Barista.Core.Extensions;
-using System.Runtime.CompilerServices;
-using System.Collections.ObjectModel;
-using Barista.Core.Providers;
 using Barista.Core.Events;
 using Barista.Core.Execution;
+using Barista.Core.Extensions;
+using Barista.Core.Providers;
+using Barista.Core.FileSystem;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Timers;
 
 [assembly: InternalsVisibleTo("Barista.Core.Tests")]
 
@@ -19,11 +19,11 @@ namespace Barista.Core
 {
     public sealed class PluginManager : IPluginManager, IDisposable
     {
-        public static PluginManager CreateForDirectory(string pluginDirectory)
+        public static PluginManager CreateForDirectory(string pluginDirectory, IFileSystemWatcher watcher)
         {
-            var fileProvider = new LocalFileProvider(pluginDirectory);
-            var pluginProvider = new PluginFileSystemProvider(fileProvider);
+            var fileProvider = new LocalFileProvider(pluginDirectory, watcher);
             var monitor = new PluginEventsMonitor();
+            var pluginProvider = new PluginFileSystemProvider(fileProvider, monitor);
             var handler = new ProcessExecutionHandler(monitor);
             var executePluginCommand = new ExecutePluginCommand(handler);
             var executeItemCommand = new ExecuteItemCommand(handler);

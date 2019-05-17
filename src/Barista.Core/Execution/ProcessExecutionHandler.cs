@@ -48,8 +48,23 @@ namespace Barista.Core.Execution
             var result = await Execute(plugin.FilePath);
             plugin.LastExecution = DateTime.Now;
 
-            var execution = ParseExecution(result.Data, plugin);
-            execution.Plugin = plugin;
+            PluginExecution execution;
+
+            if (!string.IsNullOrEmpty(result.Data))
+            {
+                execution = ParseExecution(result.Data, plugin);
+                execution.Plugin = plugin;
+            }
+            else
+            {
+                execution = new PluginExecution
+                {
+                    Plugin = plugin,
+                    Items = ImmutableList.CreateBuilder<ImmutableList<Item>>().ToImmutableList(),
+                    Success = false,
+                };
+
+            }
 
             _eventsMonitor.PluginExecuted(execution);
         }
