@@ -67,6 +67,7 @@ namespace Barista.MacOS.ViewModels
                 var titleItem = e.Execution.Items.FirstOrDefault().FirstOrDefault();
 
                 item.IconAndTitle = titleItem.Title;
+                item.Color = titleItem.Color;
                 item.LastExecution = e.Plugin.LastExecution;
                 item.Items = e.Execution.Items.Skip(1).ToList();
             }
@@ -77,7 +78,6 @@ namespace Barista.MacOS.ViewModels
                 item.Items = e.Execution.Items;
             }
         }
-
 
         public void OnPluginChanged(PluginChangedEvent e)
         {
@@ -137,7 +137,6 @@ namespace Barista.MacOS.ViewModels
 
         public new void Dispose()
         {
-
             base.Dispose();
         }
     }

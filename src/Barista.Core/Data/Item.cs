@@ -1,8 +1,12 @@
-﻿namespace Barista.Core.Data
+﻿using System.Collections.Generic;
+
+namespace Barista.Core.Data
 {
     public class Item : ItemBase
     {
         internal Plugin Plugin { get; set; }
+
+        public IReadOnlyCollection<Item> Children { get; internal set; }
 
         public ItemType Type
         {

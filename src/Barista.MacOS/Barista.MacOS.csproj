@@ -122,6 +122,7 @@
     <Compile Include="Views\SystemStatusBar\StatusBarMenuItem.cs" />
     <Compile Include="ViewModels\StatusItemViewModel.cs" />
     <Compile Include="Utils\FileSystemWatcher.cs" />
+    <Compile Include="Utils\ColorUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Views\Preferences\GeneralView.xib" />

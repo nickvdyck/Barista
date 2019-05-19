@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -114,7 +115,7 @@ namespace Barista.Core.Execution
             var itemBuilder = ImmutableList.CreateBuilder<ImmutableList<Item>>();
 
             var title = chunks.FirstOrDefault().Trim();
-            var titleItem = ParseItem(title);
+            var titleItem = ParseItem(title, new List<Item>());
             titleItem.Plugin = plugin;
             itemBuilder.Add(ImmutableList.Create(titleItem));
 
@@ -122,12 +123,23 @@ namespace Barista.Core.Execution
             {
                 var lines = chunk.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                 var builder = ImmutableList.CreateBuilder<Item>();
+                var children = new List<Item>();
 
                 foreach (var line in lines)
                 {
-                    var item = ParseItem(line);
-                    item.Plugin = plugin;
-                    builder.Add(item);
+                    if (!line.StartsWith("--", StringComparison.CurrentCulture))
+                    {
+                        children = new List<Item>();
+                        var item = ParseItem(line, children);
+                        item.Plugin = plugin;
+                        builder.Add(item);
+                    }
+                    else
+                    {
+                        var item = ParseItem(line.Replace("--", ""), new List<Item>());
+                        item.Plugin = plugin;
+                        children.Add(item);
+                    }
                 }
 
                 itemBuilder.Add(builder.ToImmutable());
@@ -139,7 +151,7 @@ namespace Barista.Core.Execution
             };
         }
 
-        private Item ParseItem(string line)
+        private Item ParseItem(string line, List<Item> children)
         {
             var parts = line.Split('|');
             var title = parts.FirstOrDefault();
@@ -147,7 +159,8 @@ namespace Barista.Core.Execution
 
             var item = new Item
             {
-                OriginalTitle = title
+                OriginalTitle = title,
+                Children = children,
             };
 
             if (!string.IsNullOrEmpty(attributes))

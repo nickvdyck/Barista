@@ -149,5 +149,30 @@ namespace Barista.Core.Data
             }
         }
 
+        public string Color
+        {
+            get
+            {
+                if (Settings.TryGetValue("color", out var color))
+                {
+                    return color;
+
+                }
+                return string.Empty;
+            }
+        }
+
+        public string Font
+        {
+            get
+            {
+                if (Settings.TryGetValue("font", out var font))
+                {
+                    return font;
+
+                }
+                return string.Empty;
+            }
+        }
     }
 }

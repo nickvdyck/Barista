@@ -28,6 +28,8 @@ namespace Barista.MacOS.ViewModels
             }
         }
 
+        public string Color { get; set; }
+
         public string ExecutedTimeAgo
         {
             get
@@ -37,7 +39,7 @@ namespace Barista.MacOS.ViewModels
         }
 
         public DateTime LastExecution { get; set; }
-        public IReadOnlyCollection<IReadOnlyCollection<Item>> Items { get; set; } 
+        public IReadOnlyCollection<IReadOnlyCollection<Item>> Items { get; set; }
         public Plugin Plugin { get; set; }
 
         private readonly IPluginManager _pluginManager;
