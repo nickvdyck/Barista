@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace Barista.Core.Execution
     internal class ProcessExecutionHandler : IExecutionHandler
     {
         private readonly PluginEventsMonitor _eventsMonitor;
+        private readonly ConcurrentDictionary<string, Plugin> executions = new ConcurrentDictionary<string, Plugin>();
 
         public ProcessExecutionHandler(PluginEventsMonitor eventsMonitor)
         {
@@ -45,6 +47,15 @@ namespace Barista.Core.Execution
 
         public async Task Execute(Plugin plugin)
         {
+            if (executions.ContainsKey(plugin.Name)) return;
+
+
+            if (!executions.TryAdd(plugin.Name, plugin))
+            {
+                System.Diagnostics.Debug.WriteLine("TODO: weird state add logging");
+                return;
+            }
+
             var result = await Execute(plugin.FilePath);
             plugin.LastExecution = DateTime.Now;
 
@@ -64,6 +75,12 @@ namespace Barista.Core.Execution
                     Success = false,
                 };
 
+            }
+
+            if (!executions.TryRemove(plugin.Name, out var _))
+            {
+                System.Diagnostics.Debug.WriteLine("TODO: weird state add logging");
+                System.Diagnostics.Debug.WriteLine("Error removing execution");
             }
 
             _eventsMonitor.PluginExecuted(execution);

@@ -1,5 +1,4 @@
-﻿using Barista.Core.Commands;
-using Barista.Core.Data;
+﻿using Barista.Core.Data;
 using Barista.Core.Events;
 using Barista.Core.Execution;
 using Barista.Core.Extensions;
@@ -7,9 +6,6 @@ using Barista.Core.Providers;
 using Barista.Core.FileSystem;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Timers;
 
@@ -25,24 +21,20 @@ namespace Barista.Core
             var monitor = new PluginEventsMonitor();
             var pluginProvider = new PluginFileSystemProvider(fileProvider, monitor);
             var handler = new ProcessExecutionHandler(monitor);
-            var executePluginCommand = new ExecutePluginCommand(handler);
-            var executeItemCommand = new ExecuteItemCommand(handler);
 
-            return new PluginManager(pluginProvider, monitor, executePluginCommand, executeItemCommand);
+            return new PluginManager(pluginProvider, monitor, handler);
         }
 
         private Timer _timer;
         private readonly IPluginProvider _pluginProvider;
         private readonly IObservable<IPluginEvent> _monitor;
-        private readonly ExecutePluginCommand _executePluginCommand;
-        private readonly ExecuteItemCommand _executeItemCommand;
+        private readonly IExecutionHandler _executionHandler;
 
-        internal PluginManager(IPluginProvider pluginProvider, IObservable<IPluginEvent> monitor, ExecutePluginCommand executePluginCommand, ExecuteItemCommand executeItemCommand)
+        internal PluginManager(IPluginProvider pluginProvider, IObservable<IPluginEvent> monitor, IExecutionHandler executionHandler)
         {
             _pluginProvider = pluginProvider;
             _monitor = monitor;
-            _executePluginCommand = executePluginCommand;
-            _executeItemCommand = executeItemCommand;
+            _executionHandler = executionHandler;
         }
 
         public IReadOnlyCollection<Plugin> ListPlugins() =>
@@ -69,24 +61,13 @@ namespace Barista.Core
 
                 var offset = DateTime.Now - plugin.LastExecution;
 
-                if (offset.TotalSeconds >= plugin.Interval)
-                {
-                    Execute(plugin);
-                }
+                if (offset.TotalSeconds >= plugin.Interval) Execute(plugin);
             }
         }
 
-        public void Execute(Plugin plugin)
-        {
-            _executePluginCommand.Plugin = plugin;
-            _executePluginCommand.Execute().Forget();
-        }
+        public void Execute(Plugin plugin) => _executionHandler.Execute(plugin).Forget();
 
-        public void Execute(Item item)
-        {
-            _executeItemCommand.Item = item;
-            _executeItemCommand.Execute().Forget();
-        }
+        public void Execute(Item item) => _executionHandler.Execute(item).Forget();
 
         public IObservable<IPluginEvent> Monitor() => _monitor;
 
