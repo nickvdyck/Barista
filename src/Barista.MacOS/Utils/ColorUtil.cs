@@ -150,7 +150,7 @@ namespace Barista.MacOS.Utils
 
         public static NSColor FromWebString(string color)
         {
-            var hexString = color.StartsWith('#') ?
+            var hexString = color.StartsWith("#") ?
                                 color.Substring(1, color.Length) :
                                 _cssDictionary.GetValueOrDefault(color.ToLower(), "black");
 
