@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Timers;
+using System.Linq;
 
 [assembly: InternalsVisibleTo("Barista.Core.Tests")]
 
@@ -42,6 +43,7 @@ namespace Barista.Core
 
         public void Execute(int interval)
         {
+            System.Diagnostics.Debug.WriteLine($"Startign loop with interval {interval}");
             if (_timer != null) return;
 
             _timer = new Timer(interval)
@@ -59,9 +61,22 @@ namespace Barista.Core
             {
                 if (!plugin.Enabled) continue;
 
-                var offset = DateTime.Now - plugin.LastExecution;
+                if (plugin.LastExecution == DateTime.MinValue)
+                {
+                    Execute(plugin);
+                    continue;
+                }
 
-                if (offset.TotalSeconds >= plugin.Interval) Execute(plugin);
+                var executions = plugin.Cron.GetOccurrences(
+                    plugin.LastExecution,
+                    DateTime.UtcNow,
+                    fromInclusive: true,
+                    toInclusive: true
+                );
+
+                //System.Diagnostics.Debug.WriteLine($"For plugin {plugin.Name} occurences {executions.Count()}, {plugin.Cron.ToString()}");
+
+                if (executions.Any()) Execute(plugin);
             }
         }
 

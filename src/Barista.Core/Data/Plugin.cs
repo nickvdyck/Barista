@@ -1,4 +1,5 @@
 using System;
+using Cronos;
 
 namespace Barista.Core.Data
 {
@@ -11,5 +12,6 @@ namespace Barista.Core.Data
         public DateTime LastExecution { get; internal set; } = DateTime.MinValue;
         public bool Enabled { get; set; } = true;
         internal int Interval { get; set; }
+        internal CronExpression Cron { get; set; }
     }
 }

@@ -1,6 +1,8 @@
 using System.Collections.Immutable;
 using System.IO;
 using Barista.Core.Data;
+using Barista.Core.Jobs;
+using Cronos;
 
 namespace Barista.Core.Providers
 {
@@ -12,7 +14,7 @@ namespace Barista.Core.Providers
             var enabled = true;
             var fileName = Path.GetFileName(path);
 
-            if (fileName.StartsWith("_"))
+            if (fileName.StartsWith("_", System.StringComparison.CurrentCulture))
             {
                 fileName = fileName.TrimStart('_');
                 enabled = false;
@@ -27,6 +29,7 @@ namespace Barista.Core.Providers
                 Schedule = schedule,
                 Type = GetPluginType(type),
                 Interval = ParseInterval(schedule),
+                Cron = ParseIntervalToCron(schedule),
                 Enabled = enabled,
             };
         }
@@ -96,6 +99,36 @@ namespace Barista.Core.Providers
                     return interval * ONE_DAY;
                 default:
                     return DEFAULT_TIME_INTERVAL;
+            }
+        }
+
+        private static CronExpression ParseIntervalToCron(string schedule)
+        {
+            if (schedule.Length < 2) return Cron.Minutely();
+
+            var intervalStr = schedule.Substring(0, schedule.Length - 1);
+
+
+            if (!int.TryParse(intervalStr, out var interval)) return Cron.Minutely();
+
+
+            var token = schedule[schedule.Length - 1];
+
+            switch (token)
+            {
+                case 's':
+                    // return interval;
+                    return Cron.SecondInterval(interval);
+                case 'm':
+                    // return interval * ONE_MINUTE;
+                    return Cron.MinuteInterval(interval);
+                case 'h':
+                    // return interval * ONE_HOUR;
+                    return Cron.HourInterval(interval);
+                case 'd':
+                    return Cron.DayInterval(interval);
+                default:
+                    return Cron.Minutely();
             }
         }
     }

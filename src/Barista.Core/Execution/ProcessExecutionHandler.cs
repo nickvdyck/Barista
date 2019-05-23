@@ -58,7 +58,7 @@ namespace Barista.Core.Execution
             }
 
             var result = await Execute(plugin.FilePath);
-            plugin.LastExecution = DateTime.Now;
+            plugin.LastExecution = DateTime.UtcNow;
 
             PluginExecution execution;
 

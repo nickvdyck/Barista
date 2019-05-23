@@ -8,7 +8,7 @@ namespace Barista.Core
     public interface IPluginManager
     {
         IReadOnlyCollection<Plugin> ListPlugins();
-        void Execute(int interval = 200);
+        void Execute(int interval = 500);
         void Execute(Plugin plugin);
         void Execute(Item item);
         IObservable<IPluginEvent> Monitor();

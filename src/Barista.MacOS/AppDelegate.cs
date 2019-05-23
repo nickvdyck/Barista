@@ -38,7 +38,7 @@ namespace Barista.MacOS
                     var watcher = new FileSystemWatcher(settings.PluginDirectory);
                     return PluginManager.CreateForDirectory(settings.PluginDirectory, watcher);
                 })
-                .OnActivated(ctx => ctx.Instance.Execute(200))
+                .OnActivated(ctx => ctx.Instance.Execute(500))
                 .As<IPluginManager>()
                 .SingleInstance();
 
