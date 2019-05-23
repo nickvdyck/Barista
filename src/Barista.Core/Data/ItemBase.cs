@@ -74,7 +74,7 @@ namespace Barista.Core.Data
             {
                 if (Settings.TryGetValue("bash", out var bash))
                 {
-                    return bash.Replace("\"", "");
+                    return bash.Trim('"').Trim('\'');
                 }
                 return string.Empty;
             }
