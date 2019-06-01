@@ -1,13 +1,13 @@
 ﻿using Barista.Core.Data;
 using Barista.Core.Events;
-using Barista.Core.Execution;
-using Barista.Core.Extensions;
 using Barista.Core.Providers;
 using Barista.Core.FileSystem;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Timers;
+using Barista.Core.Jobs;
+using Barista.Core.Plugins;
+using System.Collections.Immutable;
 using System.Linq;
 
 [assembly: InternalsVisibleTo("Barista.Core.Tests")]
@@ -20,76 +20,133 @@ namespace Barista.Core
         {
             var fileProvider = new LocalFileProvider(pluginDirectory, watcher);
             var monitor = new PluginEventsMonitor();
-            var pluginProvider = new PluginFileSystemProvider(fileProvider, monitor);
-            var handler = new ProcessExecutionHandler(monitor);
 
-            return new PluginManager(pluginProvider, monitor, handler);
+            return new PluginManager(fileProvider, monitor);
         }
 
-        private Timer _timer;
-        private readonly IPluginProvider _pluginProvider;
+        private readonly IFileProvider _fileProvider;
+        private readonly IDisposable _watcherDisposer;
         private readonly IObservable<IPluginEvent> _monitor;
-        private readonly IExecutionHandler _executionHandler;
+        private readonly JobManager _scheduler;
 
-        internal PluginManager(IPluginProvider pluginProvider, IObservable<IPluginEvent> monitor, IExecutionHandler executionHandler)
+        internal ImmutableList<Plugin> PluginCache { get; set; }
+
+        internal PluginManager(IFileProvider fileProvider, IObservable<IPluginEvent> monitor)
         {
-            _pluginProvider = pluginProvider;
+            _fileProvider = fileProvider;
+            _watcherDisposer = _fileProvider.Watch(OnPluginChanged);
             _monitor = monitor;
-            _executionHandler = executionHandler;
+            _scheduler = new JobManager(CreatePluginJobRegistry());
         }
 
-        public IReadOnlyCollection<Plugin> ListPlugins() =>
-            _pluginProvider.ListPlugins();
+        public IReadOnlyCollection<Plugin> ListPlugins() => PluginCache;
 
-        public void Execute(int interval)
+        public void Start()
         {
-            System.Diagnostics.Debug.WriteLine($"Startign loop with interval {interval}");
-            if (_timer != null) return;
-
-            _timer = new Timer(interval)
-            {
-                AutoReset = true,
-                Enabled = true,
-            };
-
-            _timer.Elapsed += RunPluginLoop;
+            _scheduler.Start();
         }
-
-        private void RunPluginLoop(object sender, ElapsedEventArgs e)
-        {
-            foreach (var plugin in _pluginProvider.ListPlugins())
-            {
-                if (!plugin.Enabled) continue;
-
-                if (plugin.LastExecution == DateTime.MinValue)
-                {
-                    Execute(plugin);
-                    continue;
-                }
-
-                var executions = plugin.Cron.GetOccurrences(
-                    plugin.LastExecution,
-                    DateTime.UtcNow,
-                    fromInclusive: true,
-                    toInclusive: true
-                );
-
-                //System.Diagnostics.Debug.WriteLine($"For plugin {plugin.Name} occurences {executions.Count()}, {plugin.Cron.ToString()}");
-
-                if (executions.Any()) Execute(plugin);
-            }
-        }
-
-        public void Execute(Plugin plugin) => _executionHandler.Execute(plugin).Forget();
-
-        public void Execute(Item item) => _executionHandler.Execute(item).Forget();
 
         public IObservable<IPluginEvent> Monitor() => _monitor;
 
+        public void Execute(Plugin plugin)
+        {
+            if (!plugin.Enabled) return;
+
+            var job = new PluginExecutionJob(plugin, _monitor as PluginEventsMonitor);
+            _scheduler.ScheduleJob(job, s => s.ToRunNow().ToRunOnce());
+        }
+
+        public void Execute(Item item)
+        {
+            if (item.Type == ItemType.RefreshAction)
+            {
+                Execute(item.Plugin);
+            }
+            else
+            {
+                var job = new ItemExecutionJob(item);
+                _scheduler.ScheduleJob(job, s => s.ToRunNow().ToRunOnce());
+            }
+        }
+
         public void Dispose()
         {
-            _timer.Elapsed -= RunPluginLoop;
-            _timer.Dispose();
+            _watcherDisposer.Dispose();
+            _scheduler.Stop();
+        }
+
+        private void LoadPlugins()
+        {
+            var files = _fileProvider.GetDirectoryContents();
+
+            if (!files.Exists) throw new Exception("Wow something went wrong, it looks like your plugin directory does not exist!");
+
+            var builder = ImmutableList.CreateBuilder<Plugin>();
+            foreach (var file in files)
+            {
+                if (file.IsDirectory) continue;
+                var plugin = PluginParser.FromFilePath(file.PhysicalPath);
+
+                builder.Add(plugin);
+            }
+
+            PluginCache = builder.ToImmutable();
+        }
+
+        private JobRegistry CreatePluginJobRegistry()
+        {
+            LoadPlugins();
+
+            var registry = new JobRegistry();
+
+            foreach (var plugin in ListPlugins().Where(p => p.Enabled))
+            {
+                var job = new PluginExecutionJob(plugin, _monitor as PluginEventsMonitor);
+                var schedule = registry.Schedule(job).WithName(plugin.Name).ToRunAt(plugin.Cron);
+
+                if (!plugin.Enabled) schedule.Disable();
+            }
+
+            return registry;
+        }
+
+        // TODO: This should be smarter, the filewatcher can tell me wich plugin
+        // has changed
+        private void OnPluginChanged()
+        {
+            LoadPlugins();
+            var plugins = ListPlugins();
+
+            foreach (var plugin in plugins)
+            {
+                var schedule = _scheduler.GetSchedule(plugin.Name);
+
+                if (plugin.Enabled == false && schedule != null)
+                {
+                    _scheduler.RemoveJob(schedule.Name);
+                    continue;
+                }
+
+                if (plugin.Enabled && schedule == null)
+                {
+                    _scheduler.ScheduleJob(
+                        new PluginExecutionJob(plugin, _monitor as PluginEventsMonitor),
+                        s => s.WithName(plugin.Name).ToRunNow().ToRunAt(plugin.Cron)
+                    );
+                }
+            }
+
+            foreach (var schedule in _scheduler.AllSchedules)
+            {
+                var plugin = plugins.FirstOrDefault(p => p.Name == schedule.Name);
+
+                if (plugin == null)
+                {
+                    _scheduler.RemoveJob(schedule.Name);
+                }
+            }
+
+            (_monitor as PluginEventsMonitor).PluginsChanged();
         }
     }
 }

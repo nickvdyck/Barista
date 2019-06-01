@@ -38,7 +38,7 @@ namespace Barista.MacOS
                     var watcher = new FileSystemWatcher(settings.PluginDirectory);
                     return PluginManager.CreateForDirectory(settings.PluginDirectory, watcher);
                 })
-                .OnActivated(ctx => ctx.Instance.Execute(500))
+                .OnActivated(ctx => ctx.Instance.Start())
                 .As<IPluginManager>()
                 .SingleInstance();
 
@@ -48,7 +48,7 @@ namespace Barista.MacOS
         public override void DidFinishLaunching(NSNotification notification)
         {
             var statusBar = container.Resolve<SystemStatusBar>();
-            var pluginManager = container.Resolve<IPluginManager>();
+            container.Resolve<IPluginManager>();
 
             statusBar.Show();
         }
