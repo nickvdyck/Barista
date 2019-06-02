@@ -79,7 +79,7 @@ namespace Barista.MacOS.ViewModels
             }
         }
 
-        public void OnPluginChanged(PluginChangedEvent e)
+        public void OnPluginChanged(PluginChangedEvent _)
         {
             var toRemove = new List<StatusItemViewModel>();
             foreach (var item in StatusItems)

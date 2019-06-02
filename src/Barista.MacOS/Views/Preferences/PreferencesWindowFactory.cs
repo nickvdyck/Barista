@@ -7,7 +7,7 @@ namespace Barista.MacOS.Views.Preferences
     public class PreferencesWindowFactory
     {
         private readonly ILifetimeScope _lifeTimeScope;
-        private List<IPreferencesTab> _tabControllers = new List<IPreferencesTab>();
+        private readonly List<IPreferencesTab> _tabControllers = new List<IPreferencesTab>();
         private static PreferencesWindowController _preferencesWindowController;
 
         public PreferencesWindowFactory(ILifetimeScope lifeTimeScope)

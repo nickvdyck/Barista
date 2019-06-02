@@ -9,11 +9,11 @@ namespace Barista.MacOS.Views.Preferences
     class PreferencesToolbarDelegate : NSToolbarDelegate
     {
         internal event EventHandler SelectionChanged;
-        IEnumerable<IPreferencesTab> tabs;
+        private readonly IEnumerable<IPreferencesTab> _tabs;
 
         internal PreferencesToolbarDelegate(IEnumerable<IPreferencesTab> tabs)
         {
-            this.tabs = tabs;
+            _tabs = tabs;
         }
 
         // Creates a toolbar item for each preferences tab. This method is called by Cocoa framework.
@@ -21,7 +21,7 @@ namespace Barista.MacOS.Views.Preferences
         // to find a correct view to be displayed when toolbar item has been activated (clicked).
         public override NSToolbarItem WillInsertItem(NSToolbar toolbar, string itemIdentifier, bool willBeInserted)
         {
-            var tab = tabs.Single(s => s.Name.Equals(itemIdentifier));
+            var tab = _tabs.Single(s => s.Name.Equals(itemIdentifier));
             var item = new NSToolbarItem(tab.Name) { Image = tab.Icon, Label = tab.Name };
             item.Activated += HandleActivated;
             return item;
@@ -55,6 +55,6 @@ namespace Barista.MacOS.Views.Preferences
         {
         }
 
-        string[] TabNames { get { return tabs.Select(s => s.Name).ToArray(); } }
+        string[] TabNames { get { return _tabs.Select(s => s.Name).ToArray(); } }
     }
 }

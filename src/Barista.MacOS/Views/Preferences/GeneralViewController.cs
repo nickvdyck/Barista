@@ -44,7 +44,7 @@ namespace Barista.MacOS.Views.Preferences
 
         #endregion
 
-        partial void OnBrowsePluginsClicked(NSObject sender)
+        partial void OnBrowsePluginsClicked(NSObject _)
         {
             var panel = NSOpenPanel.OpenPanel;
             panel.FloatingPanel = true;

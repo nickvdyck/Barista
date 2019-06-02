@@ -32,7 +32,7 @@ namespace Barista.Core.Plugins
                 Name = name,
                 Schedule = schedule,
                 Type = GetPluginType(type),
-                Cron = ParseIntervalToCron(schedule),
+                Cron = ParseScheduleToCron(schedule),
                 Disabled = disabled,
             };
         }
@@ -82,39 +82,12 @@ namespace Barista.Core.Plugins
             }
         }
 
-        private const int DEFAULT_TIME_INTERVAL = 60;
-        private const int ONE_MINUTE = 60;
-        private const int ONE_HOUR = 60 * ONE_MINUTE;
-        private const int ONE_DAY = 24 * ONE_HOUR;
+        // private const int DEFAULT_TIME_INTERVAL = 60;
+        // private const int ONE_MINUTE = 60;
+        // private const int ONE_HOUR = 60 * ONE_MINUTE;
+        // private const int ONE_DAY = 24 * ONE_HOUR;
 
-        private static int ParseInterval(string schedule)
-        {
-            if (schedule.Length < 2) return DEFAULT_TIME_INTERVAL;
-
-            var intervalStr = schedule.Substring(0, schedule.Length - 1);
-
-
-            if (!int.TryParse(intervalStr, out var interval)) return DEFAULT_TIME_INTERVAL;
-
-
-            var token = schedule[schedule.Length - 1];
-
-            switch (token)
-            {
-                case 's':
-                    return interval;
-                case 'm':
-                    return interval * ONE_MINUTE;
-                case 'h':
-                    return interval * ONE_HOUR;
-                case 'd':
-                    return interval * ONE_DAY;
-                default:
-                    return DEFAULT_TIME_INTERVAL;
-            }
-        }
-
-        private static CronExpression ParseIntervalToCron(string schedule)
+        private static CronExpression ParseScheduleToCron(string schedule)
         {
             if (schedule.Length < 2) return Cron.Minutely();
 
