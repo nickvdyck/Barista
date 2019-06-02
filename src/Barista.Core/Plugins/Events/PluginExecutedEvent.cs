@@ -1,6 +1,6 @@
 using Barista.Core.Data;
 
-namespace Barista.Core.Events
+namespace Barista.Core.Plugins.Events
 {
     public class PluginExecutedEvent : IPluginEvent
     {

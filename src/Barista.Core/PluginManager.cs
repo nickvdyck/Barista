@@ -1,11 +1,11 @@
 ﻿using Barista.Core.Data;
-using Barista.Core.Events;
 using Barista.Core.FileSystem;
+using Barista.Core.Jobs;
+using Barista.Core.Plugins;
+using Barista.Core.Plugins.Events;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Barista.Core.Jobs;
-using Barista.Core.Plugins;
 using System.Collections.Immutable;
 using System.Linq;
 

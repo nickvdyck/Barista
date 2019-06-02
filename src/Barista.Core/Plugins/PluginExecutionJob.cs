@@ -1,10 +1,10 @@
+using Barista.Core.Data;
+using Barista.Core.Jobs;
+using Barista.Core.Plugins.Events;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Barista.Core.Data;
-using Barista.Core.Events;
-using Barista.Core.Jobs;
 
 namespace Barista.Core.Plugins
 {

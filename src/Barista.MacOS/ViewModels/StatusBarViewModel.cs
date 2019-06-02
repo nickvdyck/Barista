@@ -5,7 +5,7 @@ using System.Linq;
 using AppKit;
 using Barista.Core;
 using Barista.Core.Data;
-using Barista.Core.Events;
+using Barista.Core.Plugins.Events;
 using Barista.Core.Extensions;
 using Barista.MacOS.Utils;
 using Barista.MacOS.Views.Preferences;

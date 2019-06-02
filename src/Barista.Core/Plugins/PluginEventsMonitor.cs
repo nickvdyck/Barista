@@ -1,8 +1,9 @@
+using Barista.Core.Data;
+using Barista.Core.Plugins.Events;
 using System;
 using System.Collections.Generic;
-using Barista.Core.Data;
 
-namespace Barista.Core.Events
+namespace Barista.Core.Plugins
 {
     public class PluginEventsMonitor : IObservable<IPluginEvent>
     {

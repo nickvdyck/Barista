@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Barista.Core.Data;
-using Barista.Core.Events;
+using Barista.Core.Plugins.Events;
 
 namespace Barista.Core
 {

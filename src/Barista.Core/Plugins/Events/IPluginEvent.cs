@@ -1,4 +1,4 @@
-namespace Barista.Core.Events
+namespace Barista.Core.Plugins.Events
 {
     public interface IPluginEvent
     {
