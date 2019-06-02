@@ -1,70 +1,92 @@
-﻿using Barista.Core.Data;
+﻿using System.Collections.Generic;
+using Barista.Core.Data;
+using Barista.Core.Jobs;
 using Barista.Core.Plugins;
+using Cronos;
 using Xunit;
 
 namespace Barista.Core.Tests
 {
     public class PluginParserTests
     {
-
         [Fact]
         public void PluginParser_FromFilePath_CreatesAPluginWithCorrectDefaultSettings()
         {
             // Given
             var path = "emoji.sh";
+
             // When
             var plugin = PluginParser.FromFilePath(path);
 
             // Then
+            Assert.Equal(path, plugin.FilePath);
             Assert.Equal("emoji", plugin.Name);
             Assert.Equal("", plugin.Schedule);
             Assert.Equal(PluginType.Shell, plugin.Type);
+            Assert.Equal(Cron.MinuteInterval(1), plugin.Cron);
+            Assert.False(plugin.Disabled);
         }
 
-        [Fact]
-        public void PluginParser_FromFilePath_CreatesAPluginWithCorrectInterval()
+        [Theory]
+        [MemberData(nameof(GetPluginFilePathTestData))]
+        public void PluginParser_FromFilePath_CreatesAPluginWithCorrectInterval(string filePath, string name, string schedule, CronExpression expression)
         {
             // Given, When
-            var plugin = PluginParser.FromFilePath("emoji.20s.sh");
-            var plugin2 = PluginParser.FromFilePath("awesome.2m.sh");
+            var plugin = PluginParser.FromFilePath(filePath);
 
             // Then
-            Assert.Equal("emoji", plugin.Name);
-            Assert.Equal("20s", plugin.Schedule);
-            Assert.Equal(PluginType.Shell, plugin.Type);
-
-            Assert.Equal("awesome", plugin2.Name);
-            Assert.Equal("2m", plugin2.Schedule);
-            Assert.Equal(PluginType.Shell, plugin2.Type);
+            Assert.Equal(name, plugin.Name);
+            Assert.Equal(schedule, plugin.Schedule);
+            Assert.Equal(expression, plugin.Cron);
         }
 
-        [Fact]
-        public void PluginParser_FromFilePath_CreatesAPluginWithTheCorrectType()
+        [Theory]
+        [InlineData("party.sh", "party", PluginType.Shell)]
+        [InlineData("snake.py", "snake", PluginType.Python)]
+        [InlineData("screen.js", "screen", PluginType.JavaScript)]
+        [InlineData("unknown.party", "unknown", PluginType.Unknown)]
+        public void PluginParser_FromFilePath_CreatesAPluginWithTheCorrectType(string filePath, string name, PluginType pluginType)
         {
             // Given, When
-            var plugin = PluginParser.FromFilePath("snake.py");
-            var plugin2 = PluginParser.FromFilePath("screen.js");
+            var plugin = PluginParser.FromFilePath(filePath);
 
             // Then
-            Assert.Equal("snake", plugin.Name);
-            Assert.Equal(PluginType.Python, plugin.Type);
-
-            Assert.Equal("screen", plugin2.Name);
-            Assert.Equal(PluginType.JavaScript, plugin2.Type);
+            Assert.Equal(name, plugin.Name);
+            Assert.Equal(pluginType, plugin.Type);
         }
 
-        [Fact]
-        public void PluginParser_FromFilePath_UnderscoreDisablesAPlugin()
+        [Theory]
+        [InlineData("enabled.sh", "enabled", false)]
+        [InlineData("_disabled.js", "disabled", true)]
+        [InlineData("____disabled_strips_remaining.py", "disabled_strips_remaining", true)]
+        public void PluginParser_FromFilePath_UnderscoreDisablesAPlugin(string filePath, string name, bool disabled)
         {
             // Given, When
-            var plugin = PluginParser.FromFilePath("enabled.sh");
-            var plugin2 = PluginParser.FromFilePath("_disabled.js");
+            var plugin = PluginParser.FromFilePath(filePath);
 
             // Then
-            Assert.Equal("enabled", plugin.Name);
-            Assert.True(plugin.Enabled);
-            Assert.Equal("disabled", plugin2.Name);
-            Assert.False(plugin2.Enabled);
+            Assert.Equal(name, plugin.Name);
+            Assert.Equal(disabled, plugin.Disabled);
+        }
+
+        [Theory]
+        [InlineData("without_extension", "without_extension")]
+        [InlineData("with_trailing_dot.", "with_trailing_dot")]
+        public void PluginParser_FromFilePath_CanParsePluginsWithoutExtensionAndWeirdFileNames(string filePath, string name)
+        {
+            // Given, When
+            var plugin = PluginParser.FromFilePath(filePath);
+
+            // Then
+            Assert.Equal(PluginType.Unknown, plugin.Type);
+            Assert.Equal(name, plugin.Name);
+        }
+
+        public static IEnumerable<object[]> GetPluginFilePathTestData()
+        {
+            yield return new object [] { "emoji.20s.sh", "emoji", "20s", Cron.SecondInterval(20) };
+            yield return new object [] { "awesome.2m.sh", "awesome", "2m", Cron.MinuteInterval(2) };
+            yield return new object [] { "noextension.10h", "noextension", "10h", Cron.HourInterval(10)};
         }
     }
 }

@@ -9,8 +9,7 @@ namespace Barista.Core.Data
         public string Name { get; internal set; }
         public string Schedule { get; internal set; }
         public PluginType Type { get; internal set; }
-        internal bool Enabled { get; set; } = true;
-        public bool Disabled { get => !Enabled; }
+        public bool Disabled { get; internal set; }
         internal CronExpression Cron { get; set; }
     }
 }

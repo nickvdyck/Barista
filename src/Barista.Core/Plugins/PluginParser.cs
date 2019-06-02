@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Barista.Core.Data;
 using Barista.Core.Jobs;
 using Cronos;
@@ -11,15 +12,16 @@ namespace Barista.Core.Plugins
 {
     internal static class PluginParser
     {
+        private const string VALIDATE_SCHEDULE_REGEX = "^[0-9]+[smhd]?$";
         public static Plugin FromFilePath(string path)
         {
-            var enabled = true;
+            var disabled = false;
             var fileName = Path.GetFileName(path);
 
             if (fileName.StartsWith("_", System.StringComparison.CurrentCulture))
             {
                 fileName = fileName.TrimStart('_');
-                enabled = false;
+                disabled = true;
             }
 
             var (name, schedule, type) = ParseFileName(fileName);
@@ -31,7 +33,7 @@ namespace Barista.Core.Plugins
                 Schedule = schedule,
                 Type = GetPluginType(type),
                 Cron = ParseIntervalToCron(schedule),
-                Enabled = enabled,
+                Disabled = disabled,
             };
         }
 
@@ -43,7 +45,16 @@ namespace Barista.Core.Plugins
 
             if (chunks.Length == 2)
             {
-                return (chunks[0], "", chunks[1]);
+                var match = Regex.Match(chunks[1], VALIDATE_SCHEDULE_REGEX);
+
+                if (match.Success)
+                {
+                    return (chunks[0], chunks[1], "");
+                }
+                else
+                {
+                    return (chunks[0], "", chunks[1]);
+                }
 
             }
             else if (chunks.Length == 3)
@@ -132,8 +143,6 @@ namespace Barista.Core.Plugins
                     return Cron.Minutely();
             }
         }
-
-
 
         public static PluginExecution ParseExecution(string output, Plugin plugin)
         {
