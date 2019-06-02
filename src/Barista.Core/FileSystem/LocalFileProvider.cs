@@ -36,10 +36,7 @@ namespace Barista.Core.FileSystem
             return NotFoundDirectoryContents.Singleton;
         }
 
-        public IFileInfo GetFileInfo(string filePath)
-        {
-            throw new System.NotImplementedException();
-        }
+        public IFileInfo GetFileInfo(string filePath) => throw new NotImplementedException();
 
 
         internal class WatchDisposer : IDisposable

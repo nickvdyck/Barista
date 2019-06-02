@@ -5,10 +5,11 @@ using Barista.Core.Events;
 
 namespace Barista.Core
 {
-    public interface IPluginManager
+    public interface IPluginManager : IDisposable
     {
         IReadOnlyCollection<Plugin> ListPlugins();
         void Start();
+        void Stop();
         void Execute(Plugin plugin);
         void Execute(Item item);
         IObservable<IPluginEvent> Monitor();

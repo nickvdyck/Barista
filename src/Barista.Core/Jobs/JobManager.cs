@@ -55,6 +55,22 @@ namespace Barista.Core.Jobs
             }
         }
 
+        public void StopAndBlock()
+        {
+            Stop();
+
+            var tasks = new Task[0];
+
+            // Even though Stop() was just called, a scheduling may be happening right now, that's why the loop.
+            // Simply waiting for the tasks inside the lock causes a deadlock (a task may try to remove itself from
+            // running, but it can't access the collection, it's blocked by the wait).
+            do
+            {
+                tasks = _running.Select(t => t.Value).ToArray();
+                Task.WaitAll(tasks);
+            } while (tasks.Any());
+        }
+
         public IReadOnlyCollection<Schedule> RunningSchedules
         {
             get
@@ -131,14 +147,7 @@ namespace Barista.Core.Jobs
 
             var task = RunJob(schedule);
 
-            if (_running.TryAdd(schedule, task))
-            {
-                //task.Start();
-            }
-            //else
-            //{
-            //    task.Dispose();
-            //}
+            _running.TryAdd(schedule, task);
         }
 
         private async Task RunJob(Schedule schedule)

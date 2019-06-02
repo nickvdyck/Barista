@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Barista.Core.Data;
-using Barista.Core.Events;
 using Barista.Core.Jobs;
 
 namespace Barista.Core.Plugins

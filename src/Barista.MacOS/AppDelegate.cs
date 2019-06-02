@@ -48,14 +48,14 @@ namespace Barista.MacOS
         public override void DidFinishLaunching(NSNotification notification)
         {
             var statusBar = container.Resolve<SystemStatusBar>();
-            container.Resolve<IPluginManager>();
-
             statusBar.Show();
         }
 
         public override void WillTerminate(NSNotification notification)
         {
-            // Insert code here to tear down your application
+            var pluginManager = container.Resolve<IPluginManager>();
+            pluginManager.Stop();
+            pluginManager.Dispose();
         }
     }
 }

@@ -17,7 +17,7 @@ namespace Barista.MacOS.ViewModels
     {
         public IReadOnlyCollection<Plugin> Plugins
         {
-            get => _pluginManager.ListPlugins().Where(plugin => plugin.Enabled).ToList();
+            get => _pluginManager.ListPlugins().Where(plugin => !plugin.Disabled).ToList();
         }
 
         private readonly IPluginManager _pluginManager;
@@ -68,7 +68,7 @@ namespace Barista.MacOS.ViewModels
 
                 item.IconAndTitle = titleItem.Title;
                 item.Color = titleItem.Color;
-                item.LastExecution = e.Plugin.LastExecution;
+                item.LastExecution = e.Execution.LastExecution;
                 item.Items = e.Execution.Items.Skip(1).ToList();
             }
             else

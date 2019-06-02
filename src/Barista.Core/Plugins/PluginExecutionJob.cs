@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using Barista.Core.Data;
 using Barista.Core.Events;
@@ -55,6 +53,7 @@ namespace Barista.Core.Plugins
             {
                 execution = PluginParser.ParseExecution(result.Data, _plugin);
                 execution.Plugin = _plugin;
+                execution.LastExecution = DateTime.UtcNow;
             }
             else
             {
@@ -63,6 +62,7 @@ namespace Barista.Core.Plugins
                     Plugin = _plugin,
                     Items = ImmutableList.CreateBuilder<ImmutableList<Item>>().ToImmutableList(),
                     Success = false,
+                    LastExecution = DateTime.UtcNow,
                 };
             }
 

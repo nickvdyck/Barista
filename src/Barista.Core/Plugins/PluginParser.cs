@@ -30,7 +30,6 @@ namespace Barista.Core.Plugins
                 Name = name,
                 Schedule = schedule,
                 Type = GetPluginType(type),
-                Interval = ParseInterval(schedule),
                 Cron = ParseIntervalToCron(schedule),
                 Enabled = enabled,
             };
@@ -133,9 +132,6 @@ namespace Barista.Core.Plugins
                     return Cron.Minutely();
             }
         }
-
-
-
 
 
 

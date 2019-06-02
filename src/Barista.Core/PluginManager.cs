@@ -1,6 +1,5 @@
 ﻿using Barista.Core.Data;
 using Barista.Core.Events;
-using Barista.Core.Providers;
 using Barista.Core.FileSystem;
 using System;
 using System.Collections.Generic;
@@ -11,7 +10,6 @@ using System.Collections.Immutable;
 using System.Linq;
 
 [assembly: InternalsVisibleTo("Barista.Core.Tests")]
-
 namespace Barista.Core
 {
     public sealed class PluginManager : IPluginManager, IDisposable
@@ -46,11 +44,13 @@ namespace Barista.Core
             _scheduler.Start();
         }
 
+        public void Stop() => _scheduler.StopAndBlock();
+
         public IObservable<IPluginEvent> Monitor() => _monitor;
 
         public void Execute(Plugin plugin)
         {
-            if (!plugin.Enabled) return;
+            if (plugin.Disabled) return;
 
             var job = new PluginExecutionJob(plugin, _monitor as PluginEventsMonitor);
             _scheduler.ScheduleJob(job, s => s.ToRunNow().ToRunOnce());
@@ -99,12 +99,10 @@ namespace Barista.Core
 
             var registry = new JobRegistry();
 
-            foreach (var plugin in ListPlugins().Where(p => p.Enabled))
+            foreach (var plugin in ListPlugins().Where(p => !p.Disabled))
             {
                 var job = new PluginExecutionJob(plugin, _monitor as PluginEventsMonitor);
                 var schedule = registry.Schedule(job).WithName(plugin.Name).ToRunAt(plugin.Cron);
-
-                if (!plugin.Enabled) schedule.Disable();
             }
 
             return registry;
@@ -121,13 +119,13 @@ namespace Barista.Core
             {
                 var schedule = _scheduler.GetSchedule(plugin.Name);
 
-                if (plugin.Enabled == false && schedule != null)
+                if (plugin.Disabled && schedule != null)
                 {
                     _scheduler.RemoveJob(schedule.Name);
                     continue;
                 }
 
-                if (plugin.Enabled && schedule == null)
+                if (!plugin.Disabled && schedule == null)
                 {
                     _scheduler.ScheduleJob(
                         new PluginExecutionJob(plugin, _monitor as PluginEventsMonitor),
