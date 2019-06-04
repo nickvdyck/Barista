@@ -5,11 +5,11 @@ using Cronos;
 
 namespace Barista.Core.Jobs
 {
-    public class Schedule
+    internal class Schedule
     {
         public DateTime NextRun { get; internal set; }
 
-        public string Name { get; internal set; } = Guid.NewGuid().ToString();
+        public string Name { get; internal set; }
 
         public bool Disabled { get; private set; }
 
@@ -27,42 +27,6 @@ namespace Barista.Core.Jobs
         {
             Disabled = false;
             Jobs = jobs.ToList();
-        }
-
-        public Schedule AndThen(IJob job)
-        {
-            if (job == null)
-                throw new ArgumentNullException(nameof(job));
-
-            Jobs.Add(job);
-            return this;
-        }
-
-        public Schedule ToRunNow()
-        {
-            Immediate = true;
-            return this;
-        }
-
-        public Schedule ToRunAt(CronExpression cron)
-        {
-            CalculateNextRun = now => cron.GetNextOccurrence(now, true) ?? DateTime.MaxValue;
-            return this;
-        }
-
-        public Schedule ToRunOnce()
-        {
-            PendingRunOnce = true;
-            return this;
-        }
-
-        public Schedule WithName(string name)
-        {
-            if (!string.IsNullOrEmpty(name))
-            {
-                Name = name;
-            }
-            return this;
         }
 
         public void Disable()

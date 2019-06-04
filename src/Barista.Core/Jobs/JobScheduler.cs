@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Barista.Core.Jobs
 {
-    public sealed class JobManager
+    internal sealed class JobScheduler
     {
         private const uint MAXTIMERINTERVAL = (uint)0xfffffffe;
 
@@ -21,21 +21,13 @@ namespace Barista.Core.Jobs
         public static event Action<JobStartInfo> JobStart;
         public static event Action<JobEndInfo> JobEnd;
 
-        public JobManager(JobRegistry registry) : this(registry, false)
-        {
-        }
-
-        public JobManager(JobRegistry registry, bool start)
+        public JobScheduler()
         {
             _timer = new Timer(state => ScheduleJobs(), null, Timeout.Infinite, Timeout.Infinite);
-
-            CalculateNextRun(registry.Schedules).ToList().ForEach(ExecuteSchedule);
-            if (start) Start();
         }
 
         public void Start()
         {
-            _schedules.ToList().ForEach(s => ExecuteSchedule(s.Value));
             ScheduleJobs();
         }
 
@@ -88,6 +80,20 @@ namespace Barista.Core.Jobs
             }
         }
 
+        public ScheduleBuilder Schedule(IJob job) =>
+            new ScheduleBuilder((Schedule schedule) =>
+            {
+                CalculateNextRun(new Schedule[] { schedule }).ToList().ForEach(this.ExecuteSchedule);
+                ScheduleJobs();
+            })
+            .AndThen(job);
+
+        public MultiScheduleBuilder ScheduleMany() =>
+            new MultiScheduleBuilder((List<Schedule> schedules) =>
+            {
+                CalculateNextRun(schedules).ToList().ForEach(ExecuteSchedule);
+            });
+
         public Schedule GetSchedule(string name)
         {
             if (_schedules.TryGetValue(name, out var schedule))
@@ -96,13 +102,6 @@ namespace Barista.Core.Jobs
             }
 
             return null;
-        }
-
-        public void ScheduleJob(IJob job, Func<Schedule, Schedule> scheduleFactory)
-        {
-            var schedule = scheduleFactory(new Schedule(job));
-            CalculateNextRun(new Schedule[] { schedule }).ToList().ForEach(ExecuteSchedule);
-            ScheduleJobs();
         }
 
         public void RemoveJob(string name)

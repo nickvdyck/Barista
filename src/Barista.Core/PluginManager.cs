@@ -25,7 +25,7 @@ namespace Barista.Core
         private readonly IFileProvider _fileProvider;
         private readonly IDisposable _watcherDisposer;
         private readonly IObservable<IPluginEvent> _monitor;
-        private readonly JobManager _scheduler;
+        private readonly JobScheduler _scheduler;
 
         internal ImmutableList<Plugin> PluginCache { get; set; }
 
@@ -34,7 +34,8 @@ namespace Barista.Core
             _fileProvider = fileProvider;
             _watcherDisposer = _fileProvider.Watch(OnPluginChanged);
             _monitor = monitor;
-            _scheduler = new JobManager(CreatePluginJobRegistry());
+            _scheduler = new JobScheduler();
+            AddPluginsToScheduler();
         }
 
         public IReadOnlyCollection<Plugin> ListPlugins() => PluginCache;
@@ -53,7 +54,7 @@ namespace Barista.Core
             if (plugin.Disabled) return;
 
             var job = new PluginExecutionJob(plugin, _monitor as PluginEventsMonitor);
-            _scheduler.ScheduleJob(job, s => s.ToRunNow().ToRunOnce());
+            _scheduler.Schedule(job).ToRunNow().ToRunOnce().Start();
         }
 
         public void Execute(Item item)
@@ -65,7 +66,7 @@ namespace Barista.Core
             else
             {
                 var job = new ItemExecutionJob(item);
-                _scheduler.ScheduleJob(job, s => s.ToRunNow().ToRunOnce());
+                _scheduler.Schedule(job).ToRunNow().ToRunOnce().Start();
             }
         }
 
@@ -93,19 +94,19 @@ namespace Barista.Core
             PluginCache = builder.ToImmutable();
         }
 
-        private JobRegistry CreatePluginJobRegistry()
+        private void AddPluginsToScheduler()
         {
             LoadPlugins();
 
-            var registry = new JobRegistry();
+            var builder = _scheduler.ScheduleMany();
 
             foreach (var plugin in ListPlugins().Where(p => !p.Disabled))
             {
                 var job = new PluginExecutionJob(plugin, _monitor as PluginEventsMonitor);
-                var schedule = registry.Schedule(job).WithName(plugin.Name).ToRunAt(plugin.Cron);
+                builder.Schedule(job).WithName(plugin.Name).ToRunNow().ToRunAt(plugin.Cron).Start();
             }
 
-            return registry;
+            builder.Build();
         }
 
         // TODO: This should be smarter, the filewatcher can tell me wich plugin
@@ -127,10 +128,12 @@ namespace Barista.Core
 
                 if (!plugin.Disabled && schedule == null)
                 {
-                    _scheduler.ScheduleJob(
-                        new PluginExecutionJob(plugin, _monitor as PluginEventsMonitor),
-                        s => s.WithName(plugin.Name).ToRunNow().ToRunAt(plugin.Cron)
-                    );
+                    var job = new PluginExecutionJob(plugin, _monitor as PluginEventsMonitor);
+                    _scheduler.Schedule(job)
+                        .WithName(plugin.Name)
+                        .ToRunNow()
+                        .ToRunAt(plugin.Cron)
+                        .Start();
                 }
             }
 
