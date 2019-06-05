@@ -5,7 +5,7 @@ using Barista.MacOS.Services;
 using Barista.MacOS.Utils;
 using Barista.MacOS.ViewModels;
 using Barista.MacOS.Views.Preferences;
-using Barista.MacOS.Views.SystemStatusBar;
+using Barista.MacOS.Views.StatusBar;
 using Foundation;
 
 namespace Barista.MacOS
@@ -20,7 +20,7 @@ namespace Barista.MacOS
             var builder = new ContainerBuilder();
 
             // Views
-            builder.RegisterType<SystemStatusBar>().AsSelf();
+            builder.RegisterType<BaristaStatusBar>().AsSelf();
             builder.RegisterType<GeneralViewController>().AsSelf();
             builder.RegisterType<PluginViewController>().AsSelf();
             builder.RegisterType<PreferencesWindowFactory>().AsSelf();
@@ -47,7 +47,7 @@ namespace Barista.MacOS
 
         public override void DidFinishLaunching(NSNotification notification)
         {
-            var statusBar = container.Resolve<SystemStatusBar>();
+            var statusBar = container.Resolve<BaristaStatusBar>();
             statusBar.Show();
         }
 

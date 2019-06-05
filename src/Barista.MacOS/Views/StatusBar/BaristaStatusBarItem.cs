@@ -1,29 +1,23 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using AppKit;
 using Barista.Core.Data;
 using Barista.MacOS.Utils;
 using Barista.MacOS.ViewModels;
 using Foundation;
 
-namespace Barista.MacOS.Views.SystemStatusBar
+namespace Barista.MacOS.Views.StatusBar
 {
-    public class StatusBarMenuItem : NSObject
+    public class BaristaStatusBarItem : StatusBarItem
     {
-        private readonly NSStatusBar _statusBar;
-        private readonly NSStatusItem _mainMenu;
-        public StatusItemViewModel ViewModel;
-
         private readonly IDisposable _titleObserver;
-
-        public StatusBarMenuItem(StatusItemViewModel viewModel)
+        public StatusItemViewModel ViewModel { get; private set; }
+        public BaristaStatusBarItem(StatusItemViewModel viewModel) : base()
         {
             ViewModel = viewModel;
-            _statusBar = NSStatusBar.SystemStatusBar;
-            _mainMenu = _statusBar.CreateStatusItem(NSStatusItemLength.Variable);
-
             _titleObserver = ViewModel.AddObserver("IconAndTitle", NSKeyValueObservingOptions.New, OnTitleChanged);
+
+            Title = ViewModel.IconAndTitle;
         }
 
         private void OnTitleChanged(NSObservedChange change)
@@ -38,7 +32,7 @@ namespace Barista.MacOS.Views.SystemStatusBar
                     title.AddAttribute(NSStringAttributeKey.ForegroundColor, color, new NSRange(0, ViewModel.IconAndTitle.Length));
                 }
 
-                _mainMenu.Button.AttributedTitle = title;
+                AttributedTitle = title;
             });
         }
 
@@ -83,16 +77,16 @@ namespace Barista.MacOS.Views.SystemStatusBar
             menu.AddItem(NSMenuItem.SeparatorItem);
         }
 
-        private void OnMenuWillOpen(NSMenu _)
+        public override void OnMenuWillOpen(NSMenu _)
         {
             var menuItems = new List<NSMenuItem>();
 
             foreach (var itemCollection in ViewModel.Items)
             {
-                AddItemsToMenu(itemCollection, _mainMenu.Menu);
+                AddItemsToMenu(itemCollection, Menu);
             }
 
-            _mainMenu.Menu.AddItem(new NSMenuItem("LastUpdated")
+            Menu.AddItem(new NSMenuItem("LastUpdated")
             {
                 Title = ViewModel.ExecutedTimeAgo,
             });
@@ -103,56 +97,18 @@ namespace Barista.MacOS.Views.SystemStatusBar
                 OnPreferencesClicked = ViewModel.OnOpenPreferences,
                 OnQuitClicked = ViewModel.OnExit
             };
-            _mainMenu.Menu.AddItem(baristaSubMenu);
+
+            Menu.AddItem(baristaSubMenu);
         }
 
-        private void OnMenuDidClose(NSMenu _)
+        public override void OnMenuDidClose(NSMenu _)
         {
-            _mainMenu.Menu.RemoveAllItems();
+            Menu.RemoveAllItems();
         }
 
-        class StatusBarMenuItemEvents : NSMenuDelegate
-        {
-
-            public Action<NSMenu> OnMenuWillOpen { get; set; }
-            public Action<NSMenu> OnMenuDidClose { get; set; }
-            public Action<NSMenu, NSMenuItem> OnMenuWillHighlight { get; set; }
-
-            public override void MenuWillOpen(NSMenu menu)
-            {
-                OnMenuWillOpen?.Invoke(menu);
-            }
-
-            public override void MenuDidClose(NSMenu menu)
-            {
-                OnMenuDidClose?.Invoke(menu);
-            }
-
-            public override void MenuWillHighlightItem(NSMenu menu, NSMenuItem item)
-            {
-                OnMenuWillHighlight?.Invoke(menu, item);
-            }
-        }
-        public void Show()
-        {
-            var events = new StatusBarMenuItemEvents
-            {
-                OnMenuWillOpen = OnMenuWillOpen,
-                OnMenuDidClose = OnMenuDidClose
-            };
-
-            _mainMenu.Button.Title = ViewModel.IconAndTitle;
-
-            _mainMenu.Menu = new NSMenu()
-            {
-                Delegate = events,
-            };
-        }
-
-        public new void Dispose()
+        public override void Dispose()
         {
             System.Diagnostics.Debug.WriteLine($"Disposing menu item for {ViewModel.Plugin.Name}");
-            _statusBar.RemoveStatusItem(_mainMenu);
             _titleObserver.Dispose();
             ViewModel.Dispose();
             base.Dispose();

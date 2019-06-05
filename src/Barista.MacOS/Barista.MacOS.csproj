@@ -83,7 +83,7 @@
     <Folder Include="Services\" />
     <Folder Include="ViewModels\" />
     <Folder Include="Views\Preferences\" />
-    <Folder Include="Views\SystemStatusBar\" />
+    <Folder Include="Views\StatusBar\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -119,13 +119,14 @@
     <Compile Include="Views\Preferences\PreferencesWindow.cs" />
     <Compile Include="Views\Preferences\PreferencesWindowController.cs" />
     <Compile Include="Views\Preferences\PreferencesWindowFactory.cs" />
-    <Compile Include="Views\SystemStatusBar\BaristaSubMenuView.cs" />
+    <Compile Include="Views\StatusBar\BaristaSubMenuView.cs" />
     <Compile Include="ViewModels\StatusBarViewModel.cs" />
-    <Compile Include="Views\SystemStatusBar\SystemStatusBar.cs" />
-    <Compile Include="Views\SystemStatusBar\StatusBarMenuItem.cs" />
     <Compile Include="ViewModels\StatusItemViewModel.cs" />
     <Compile Include="Utils\FileSystemWatcher.cs" />
     <Compile Include="Utils\ColorUtil.cs" />
+    <Compile Include="Views\StatusBar\BaristaStatusBar.cs" />
+    <Compile Include="Views\StatusBar\BaristaStatusBarItem.cs" />
+    <Compile Include="Views\StatusBar\StatusBarItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Views\Preferences\GeneralView.xib" />

@@ -1,7 +1,7 @@
 using System;
 using AppKit;
 
-namespace Barista.MacOS.Views.SystemStatusBar
+namespace Barista.MacOS.Views.StatusBar
 {
     public class BaristaSubmenuView : NSMenuItem, IDisposable
     {
