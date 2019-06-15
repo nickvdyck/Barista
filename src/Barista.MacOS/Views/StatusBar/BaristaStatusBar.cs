@@ -47,9 +47,6 @@ namespace Barista.MacOS.Views.StatusBar
                 case NotifyCollectionChangedAction.Add:
                     OnItemAdded();
                     break;
-
-                default:
-                    break;
             }
         }
 

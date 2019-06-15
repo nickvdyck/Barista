@@ -50,5 +50,5 @@ stages:
         echo "##vso[task.setvariable variable=PATH;]$MONOPREFIX/bin:$PATH"
       displayName: Select MONO version
 
-    - bash: make build
+    - bash: make
       displayName: Build macos application

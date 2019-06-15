@@ -1,14 +1,15 @@
 .PHONY: purge clean test
-.DEFAULT_GOAL := build
+.DEFAULT_GOAL := default
 
-MACOSSLN	:= Barista.MacOS.sln
-CORE		:= src/Barista.Core
-MACOS		:= src/Barista.MacOS
-BUILD		:= .build
-TEST_CORE	:= test/Barista.Core.Tests
+MACOSSLN		:= Barista.MacOS.sln
+CORE			:= src/Barista.Core
+MACOS			:= src/Barista.MacOS
+BUILD			:= .build
+TEST_CORE		:= test/Barista.Core.Tests
+CONFIGURATION	:= Debug
 
-INFOPLIST	:= $(MACOS)/Info.plist
-VERSION		= $(shell /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $(INFOPLIST))
+INFOPLIST		:= $(MACOS)/Info.plist
+VERSION			= $(shell /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $(INFOPLIST))
 
 purge: clean
 	rm -rf .vs
@@ -23,8 +24,11 @@ clean:
 restore:
 	nuget restore $(MACOSSLN)
 
+default:
+	$(MAKE) build CONFIGURATION=Release
+
 build: restore
-	msbuild $(MACOSSLN) /restore:True /p:Configuration=Release
+	msbuild $(MACOSSLN) /restore:True /p:Configuration=$(CONFIGURATION)
 
 test:
 	dotnet test $(TEST_CORE)
