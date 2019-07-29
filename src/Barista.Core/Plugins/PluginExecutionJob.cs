@@ -27,7 +27,8 @@ namespace Barista.Core.Plugins
             {
                 FileName = _plugin.FilePath,
                 UseShellExecute = false,
-                RedirectStandardOutput = true
+                RedirectStandardOutput = true,
+                StandardOutputEncoding = System.Text.Encoding.UTF8,
             };
 
             (string Data, string Error) result;

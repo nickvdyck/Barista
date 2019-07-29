@@ -5,13 +5,13 @@ using Foundation;
 
 namespace Barista.MacOS.Utils
 {
-    public class FileSystemWatcher : IDisposable, IFileSystemWatcher
+    public class MacFileSystemWatcher : IDisposable, IFileSystemWatcher
     {
         private readonly FSEventStream _eventStream;
 
         public event EventHandler Events;
 
-        public FileSystemWatcher(string filePath)
+        public MacFileSystemWatcher(string filePath)
         {
             _eventStream = new FSEventStream(new[] { filePath }, TimeSpan.FromMilliseconds(200), FSEventStreamCreateFlags.FileEvents);
             _eventStream.Events += OnFSEventStreamEvents;

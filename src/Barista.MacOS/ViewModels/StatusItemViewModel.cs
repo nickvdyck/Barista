@@ -34,7 +34,7 @@ namespace Barista.MacOS.ViewModels
         {
             get
             {
-                var localTime = TimeZone.CurrentTimeZone.ToLocalTime(LastExecution);
+                var localTime = LastExecution.ToLocalTime();
                 return $"Updated {TimeAgo.Format(localTime)}";
             }
         }

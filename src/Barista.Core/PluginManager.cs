@@ -12,15 +12,15 @@ using System.Linq;
 [assembly: InternalsVisibleTo("Barista.Core.Tests")]
 namespace Barista.Core
 {
-    public sealed class PluginManager : IPluginManager, IDisposable
+    internal sealed class PluginManager : IPluginManager, IDisposable
     {
-        public static PluginManager CreateForDirectory(string pluginDirectory, IFileSystemWatcher watcher)
-        {
-            var fileProvider = new LocalFileProvider(pluginDirectory, watcher);
-            var monitor = new PluginEventsMonitor();
+        //public static PluginManager CreateForDirectory(string pluginDirectory, IFileSystemWatcher watcher)
+        //{
+        //    var fileProvider = new LocalFileProvider(pluginDirectory, watcher);
+        //    var monitor = new PluginEventsMonitor();
 
-            return new PluginManager(fileProvider, monitor);
-        }
+        //    return new PluginManager(fileProvider, monitor);
+        //}
 
         private readonly IFileProvider _fileProvider;
         private readonly IDisposable _watcherDisposer;
