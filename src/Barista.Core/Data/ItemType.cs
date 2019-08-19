@@ -1,4 +1,4 @@
-﻿namespace Barista.Core.Data
+﻿namespace Barista.Data
 {
     public enum ItemType
     {

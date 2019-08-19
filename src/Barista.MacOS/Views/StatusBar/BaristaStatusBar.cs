@@ -16,17 +16,34 @@ namespace Barista.MacOS.Views.StatusBar
         {
             ViewModel = viewModel;
             ViewModel.StatusItems.CollectionChanged += OnPluginCollectionChanged;
+
+            foreach (var model in viewModel.StatusItems)
+            {
+                var item = new BaristaStatusBarItem(model);
+                AddItem(model, item);
+            }
         }
 
         public void OnPluginCollectionChanged(object sender, NotifyCollectionChangedEventArgs ev)
         {
             void OnItemRemoved()
             {
-                var removed = (ev.OldItems as List<object>).Except(ev.NewItems as List<object>);
-                foreach (StatusItemViewModel toRemove in removed)
+                if (ev.NewItems == null || ev.NewItems.Count == 0)
                 {
-                    RemoveItem(toRemove);
+                    foreach (StatusItemViewModel toRemove in ev.OldItems)
+                    {
+                        RemoveItem(toRemove);
+                    }
                 }
+                else
+                {
+                    var removed = (ev.OldItems as List<object>).Except(ev.NewItems as List<object>).ToList();
+                    foreach (StatusItemViewModel toRemove in removed)
+                    {
+                        RemoveItem(toRemove);
+                    }
+                }
+
             }
 
             void OnItemAdded()
@@ -50,8 +67,6 @@ namespace Barista.MacOS.Views.StatusBar
             }
         }
 
-        public void Show() => ViewModel.Load();
-
         public void AddItem(StatusItemViewModel viewModel, StatusBarItem item)
         {
             _items.Add(viewModel, item);
@@ -59,8 +74,10 @@ namespace Barista.MacOS.Views.StatusBar
 
         public void RemoveItem(StatusItemViewModel viewModel)
         {
-            _items.Remove(viewModel, out var item);
-            item.Dispose();
+            if (_items.Remove(viewModel, out var item))
+            {
+                item.Dispose();
+            }
         }
 
         public void Dispose()

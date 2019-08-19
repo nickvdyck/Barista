@@ -1,26 +1,27 @@
 using AppKit;
 using System.Collections.Generic;
-using TinyIoC;
+using DryIoc;
+using Barista.Common.DependencyInjection;
 
 namespace Barista.MacOS.Views.Preferences
 {
     public class PreferencesWindowFactory
     {
-        private readonly TinyIoCContainer _container;
+        private readonly ServiceProvider _provider;
         private readonly List<IPreferencesTab> _tabControllers = new List<IPreferencesTab>();
         private static PreferencesWindowController _preferencesWindowController;
 
-        public PreferencesWindowFactory(TinyIoCContainer container)
+        public PreferencesWindowFactory(ServiceProvider provider)
         {
-            _container = container;
+            _provider = provider;
         }
 
         private void InitializeTabs()
         {
             if (_tabControllers.Count == 0)
             {
-                var general = _container.Resolve<GeneralViewController>();
-                var plugins = _container.Resolve<PluginViewController>();
+                var general = _provider.GetInstance<GeneralViewController>();
+                var plugins = _provider.GetInstance<PluginViewController>();
 
                 _tabControllers.Add(general);
                 _tabControllers.Add(plugins);

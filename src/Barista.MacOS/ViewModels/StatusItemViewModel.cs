@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AppKit;
-using Barista.Core;
-using Barista.Core.Data;
+using Barista.Data;
 using Barista.MacOS.Utils;
 using Barista.MacOS.Views.Preferences;
 using Foundation;

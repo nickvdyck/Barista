@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
-using Barista.Core.Data;
-using Barista.Core.Jobs;
-using Barista.Core.Plugins;
+using Barista.Data;
+using Barista.Common.Jobs;
 using Cronos;
 using Xunit;
 
-namespace Barista.Core.Tests
+namespace Barista.Tests
 {
     public class PluginParserTests
     {

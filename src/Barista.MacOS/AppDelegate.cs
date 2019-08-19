@@ -1,25 +1,26 @@
 using AppKit;
-using Barista.Core;
-using Barista.Core.FileSystem;
-using Barista.IOC;
+using Barista.Extensions;
+using Barista.Common.FileSystem;
 using Barista.MacOS.Services;
 using Barista.MacOS.Utils;
 using Barista.MacOS.ViewModels;
 using Barista.MacOS.Views.Preferences;
 using Barista.MacOS.Views.StatusBar;
 using Foundation;
-using TinyIoC;
+using DryIoc;
+using Barista.Common;
+using Barista.Data.Events;
 
 namespace Barista.MacOS
 {
     [Register("AppDelegate")]
     public class AppDelegate : NSApplicationDelegate
     {
-        private readonly TinyIoCContainer _container;
+        private readonly Container _container;
 
         public AppDelegate()
         {
-            var container = TinyIoCContainer.Current;
+            var container = new Container(rules => rules.WithoutThrowOnRegisteringDisposableTransient());
 
             container.AddPluginManager(options =>
             {
@@ -28,19 +29,27 @@ namespace Barista.MacOS
                 options.Directory = appsettings.PluginDirectory;
             });
 
-            // Views
-            container.Register<BaristaStatusBar>().AsMultiInstance();
-            container.Register<GeneralViewController>().AsMultiInstance();
-            container.Register<PluginViewController>().AsMultiInstance();
-            container.Register<PreferencesWindowFactory>().AsMultiInstance();
+            // Handlers
+            container.RegisterDelegate<IEventHandler<PluginExecutedEvent>>(
+                resolver => resolver.Resolve<StatusBarViewModel>()
+            );
+            container.RegisterDelegate<IEventHandler<PluginsUpdatedEvent>>(
+                resolver => resolver.Resolve<StatusBarViewModel>()
+            );
+
+             // Views
+            container.Register<BaristaStatusBar>();
+            container.Register<GeneralViewController>(made: Made.Of(() => new GeneralViewController(Arg.Of<GeneralPreferencesViewModel>())));
+            container.Register<PluginViewController>(made: Made.Of(() => new PluginViewController()));
+            container.Register<PreferencesWindowFactory>();
 
             // ViewModels
-            container.Register<GeneralPreferencesViewModel>().AsMultiInstance();
-            container.Register<StatusBarViewModel>().AsMultiInstance();
+            container.Register<GeneralPreferencesViewModel>(Reuse.Singleton);
+            container.Register<StatusBarViewModel>(Reuse.Singleton);
 
             // Services
-            container.Register<ISettingsService, DefaultsService>().AsSingleton();
-            container.Register<IFileSystemWatcher>((provider, _) =>
+            container.Register<ISettingsService, DefaultsService>(Reuse.Singleton);
+            container.RegisterDelegate<IFileSystemWatcher>((provider) =>
             {
                 var settings = provider.Resolve<ISettingsService>();
                 return new MacFileSystemWatcher(settings.GetSettings().PluginDirectory);
@@ -52,10 +61,9 @@ namespace Barista.MacOS
         public override void DidFinishLaunching(NSNotification notification)
         {
             var pluginManager = _container.Resolve<IPluginManager>();
-            var statusBar = _container.Resolve<BaristaStatusBar>();
-
             pluginManager.Start();
-            statusBar.Show();
+
+            _container.Resolve<BaristaStatusBar>();
         }
 
         public override void WillTerminate(NSNotification notification)

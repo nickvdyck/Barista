@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Barista.Core.Data;
-using Barista.Core.Plugins.Events;
+using Barista.Data;
 
-namespace Barista.Core
+namespace Barista
 {
     public interface IPluginManager : IDisposable
     {
@@ -12,6 +11,5 @@ namespace Barista.Core
         void Stop();
         void Execute(Plugin plugin);
         void Execute(Item item);
-        IObservable<IPluginEvent> Monitor();
     }
 }

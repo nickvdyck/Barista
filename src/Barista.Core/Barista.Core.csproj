@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Cronos" Version="0.7.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
+    <PackageReference Include="DryIoc" Version="4.0.5" />
   </ItemGroup>
 
 </Project>

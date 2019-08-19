@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Barista.Core.Extensions;
+using Barista.Extensions;
 
-namespace Barista.Core.Data
+namespace Barista.Data
 {
     public abstract class ItemBase
     {

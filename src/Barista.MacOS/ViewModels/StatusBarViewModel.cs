@@ -2,18 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using AppKit;
-using Barista.Core;
-using Barista.Core.Data;
-using Barista.Core.Plugins.Events;
-using Barista.Core.Extensions;
-using Barista.MacOS.Utils;
+using Barista.Common;
+using Barista.Data;
+using Barista.Data.Events;
+using Barista.Data.Queries;
 using Barista.MacOS.Views.Preferences;
 using Foundation;
 
 namespace Barista.MacOS.ViewModels
 {
-    public class StatusBarViewModel : NSObject
+    public class StatusBarViewModel : NSObject, IEventHandler<PluginsUpdatedEvent>, IEventHandler<PluginExecutedEvent>
     {
         public IReadOnlyCollection<Plugin> Plugins
         {
@@ -22,92 +23,66 @@ namespace Barista.MacOS.ViewModels
 
         private readonly IPluginManager _pluginManager;
         private readonly PreferencesWindowFactory _preferencesWindowFactory;
+        private readonly IMediator _mediator;
         public ObservableCollection<StatusItemViewModel> StatusItems = new ObservableCollection<StatusItemViewModel>();
 
-        public StatusBarViewModel(IPluginManager pluginManager, PreferencesWindowFactory preferencesWindowFactory)
+        public StatusBarViewModel(IPluginManager pluginManager, PreferencesWindowFactory preferencesWindowFactory, IMediator mediator)
         {
             _pluginManager = pluginManager;
             _preferencesWindowFactory = preferencesWindowFactory;
+            _mediator = mediator;
         }
 
-        public void Load()
+        async Task IEventHandler<PluginExecutedEvent>.Handle(PluginExecutedEvent @event, CancellationToken cancellationToken)
         {
-            foreach (var plugin in Plugins)
+            var item = StatusItems.FirstOrDefault(s => s.Plugin.Name == @event.Name);
+            var plugin = await _mediator.Send(new GetPluginQuery { Name = @event.Name });
+            item.Plugin = plugin;
+
+            if (@event.Success == true)
             {
-                StatusItems.Add(new StatusItemViewModel(_pluginManager, _preferencesWindowFactory)
-                {
-                    Plugin = plugin
-                });
-            }
-
-            _pluginManager.Monitor().Subscribe(OnPluginMonitorEvent);
-        }
-
-        public void OnPluginMonitorEvent(IPluginEvent e)
-        {
-            switch (e)
-            {
-                case PluginExecutedEvent executedEvent:
-                    OnPluginExecuted(executedEvent);
-                    break;
-
-                case PluginChangedEvent changedEvent:
-                    OnPluginChanged(changedEvent);
-                    break;
-            }
-        }
-
-        public void OnPluginExecuted(PluginExecutedEvent e)
-        {
-            var item = StatusItems.FirstOrDefault(s => s.Plugin.Name == e.Plugin.Name);
-            item.Plugin = e.Plugin;
-
-            if (e.Execution.Success == true)
-            {
-                var titleItem = e.Execution.Items.FirstOrDefault().FirstOrDefault();
+                var titleItem = @event.Items.FirstOrDefault().FirstOrDefault();
 
                 item.IconAndTitle = titleItem.Title;
                 item.Color = titleItem.Color;
-                item.LastExecution = e.Execution.LastExecution;
-                item.Items = e.Execution.Items.Skip(1).ToList();
+                item.LastExecution = @event.LastExecution;
+                item.Items = @event.Items.Skip(1).ToList();
             }
             else
             {
                 item.IconAndTitle = "⚠️";
                 item.LastExecution = DateTime.Now;
-                item.Items = e.Execution.Items;
+                item.Items = @event.Items;
             }
         }
 
-        public void OnPluginChanged(PluginChangedEvent _)
+        async Task IEventHandler<PluginsUpdatedEvent>.Handle(PluginsUpdatedEvent @event, CancellationToken cancellationToken)
         {
-            var toRemove = new List<StatusItemViewModel>();
-            foreach (var item in StatusItems)
+            foreach (var removed in @event.Removed)
             {
-                var plugin = Plugins.FirstOrDefault(p => p.Name == item.Plugin.Name);
-
-                if (plugin == null)
-                {
-                    toRemove.Add(item);
-                }
-            }
-
-            foreach (var item in toRemove)
-            {
+                var item = StatusItems.FirstOrDefault(i => i.Plugin.Name == removed.Name);
                 StatusItems.Remove(item);
             }
 
-            foreach (var plugin in Plugins)
+            var plugins = await _mediator.Send(new GetPluginsQuery());
+
+            foreach (var plugin in plugins.Where(p => !p.Disabled))
             {
-                var item = StatusItems.FirstOrDefault(s => s.Plugin.Name == plugin.Name);
+                var item = StatusItems.FirstOrDefault(i => i.Plugin.Name == plugin.Name);
 
                 if (item == null)
                 {
                     StatusItems.Add(new StatusItemViewModel(_pluginManager, _preferencesWindowFactory)
                     {
-                        Plugin = plugin
+                        Plugin = plugin,
                     });
                 }
+            }
+
+            foreach (var plugin in plugins.Where(p => p.Disabled))
+            {
+                var item = StatusItems.FirstOrDefault(i => i.Plugin.Name == plugin.Name);
+                if (item != null) StatusItems.Remove(item);
             }
         }
 

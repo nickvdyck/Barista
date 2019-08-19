@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 
-namespace Barista.Core.Data
+namespace Barista.Data
 {
     public class PluginExecution
     {

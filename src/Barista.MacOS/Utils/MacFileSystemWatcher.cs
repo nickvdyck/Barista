@@ -1,5 +1,5 @@
 using System;
-using Barista.Core.FileSystem;
+using Barista.Common.FileSystem;
 using CoreServices;
 using Foundation;
 

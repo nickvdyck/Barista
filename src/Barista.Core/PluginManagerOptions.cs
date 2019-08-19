@@ -1,6 +1,6 @@
-namespace Barista.Core
+namespace Barista
 {
-    internal class PluginManagerOptions : IPluginManagerOptions
+    public class PluginManagerOptions
     {
         public string Directory { get; set; }
     }

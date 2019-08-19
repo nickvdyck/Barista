@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Barista.Core.Data
+namespace Barista.Data
 {
     public class Item : ItemBase
     {
