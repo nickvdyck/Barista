@@ -1,5 +1,5 @@
 using AppKit;
-using Barista.Extensions;
+using DryIoc;
 using Barista.Common.FileSystem;
 using Barista.MacOS.Services;
 using Barista.MacOS.Utils;
@@ -7,9 +7,7 @@ using Barista.MacOS.ViewModels;
 using Barista.MacOS.Views.Preferences;
 using Barista.MacOS.Views.StatusBar;
 using Foundation;
-using DryIoc;
-using Barista.Common;
-using Barista.Data.Events;
+using System;
 
 namespace Barista.MacOS
 {
@@ -21,56 +19,63 @@ namespace Barista.MacOS
         public AppDelegate()
         {
             var container = new Container(rules => rules.WithoutThrowOnRegisteringDisposableTransient());
+            var defaults = new DefaultsService();
 
-            container.AddPluginManager(options =>
-            {
-                var settings = container.Resolve<ISettingsService>();
-                var appsettings = settings.GetSettings();
-                options.Directory = appsettings.PluginDirectory;
-            });
+            var baristaApp = new BaristaAppBuilder()
+                .ConfigureServices(services =>
+                {
+                    services.RegisterDelegate<IFileSystemWatcher>(
+                        (provider) =>
+                        {
+                            var settings = defaults.GetSettings();
+                            return new MacFileSystemWatcher(settings.PluginDirectory);
+                        },
+                        ifAlreadyRegistered: IfAlreadyRegistered.Replace
+                    );
+                })
+                .ConfigureOptions(options =>
+                {
+                    var settings = defaults.GetSettings();
+                    options.PluginDirectory = settings.PluginDirectory;
+                })
+                .Build();
 
-            // Handlers
-            container.RegisterDelegate<IEventHandler<PluginExecutedEvent>>(
-                resolver => resolver.Resolve<StatusBarViewModel>()
-            );
-            container.RegisterDelegate<IEventHandler<PluginsUpdatedEvent>>(
-                resolver => resolver.Resolve<StatusBarViewModel>()
-            );
+            // App
+            container.RegisterDelegate<BaristaApp>(_ => baristaApp);
 
-             // Views
+            // Utils
+            container.RegisterDelegate<ServiceProvider>(r => r.Resolve);
+
+            // Views
             container.Register<BaristaStatusBar>();
+            container.Register<BaristaStatusBarItem>(made: Made.Of(
+                () => new BaristaStatusBarItem(Arg.Of<BaristaApp>(), Arg.Of<PreferencesWindowFactory>())
+            ));
             container.Register<GeneralViewController>(made: Made.Of(() => new GeneralViewController(Arg.Of<GeneralPreferencesViewModel>())));
             container.Register<PluginViewController>(made: Made.Of(() => new PluginViewController()));
             container.Register<PreferencesWindowFactory>();
 
             // ViewModels
             container.Register<GeneralPreferencesViewModel>(Reuse.Singleton);
-            container.Register<StatusBarViewModel>(Reuse.Singleton);
-
-            // Services
-            container.Register<ISettingsService, DefaultsService>(Reuse.Singleton);
-            container.RegisterDelegate<IFileSystemWatcher>((provider) =>
-            {
-                var settings = provider.Resolve<ISettingsService>();
-                return new MacFileSystemWatcher(settings.GetSettings().PluginDirectory);
-            });
 
             _container = container;
         }
 
         public override void DidFinishLaunching(NSNotification notification)
         {
-            var pluginManager = _container.Resolve<IPluginManager>();
-            pluginManager.Start();
-
+            var app = _container.Resolve<BaristaApp>();
+            app.Start();
             _container.Resolve<BaristaStatusBar>();
+
+            app.Store
+                .Select()
+                .Subscribe(state => System.Diagnostics.Debug.WriteLine($"Total Plugins {state.Plugins.Count}"));
         }
 
         public override void WillTerminate(NSNotification notification)
         {
-            var pluginManager = _container.Resolve<IPluginManager>();
-            pluginManager.Stop();
-            pluginManager.Dispose();
+            var app = _container.Resolve<BaristaApp>();
+            app.Dispose();
         }
     }
 }

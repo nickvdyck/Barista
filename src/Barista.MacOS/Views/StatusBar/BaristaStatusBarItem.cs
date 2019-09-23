@@ -3,36 +3,43 @@ using System.Collections.Generic;
 using AppKit;
 using Barista.Data;
 using Barista.MacOS.Utils;
-using Barista.MacOS.ViewModels;
+using Barista.MacOS.Views.Preferences;
 using Foundation;
+using static Barista.MacOS.Selectors.SelectPluginsWithExecutionResult;
 
 namespace Barista.MacOS.Views.StatusBar
 {
     public class BaristaStatusBarItem : StatusBarItem
     {
-        private readonly IDisposable _titleObserver;
-        public StatusItemViewModel ViewModel { get; private set; }
-        public BaristaStatusBarItem(StatusItemViewModel viewModel) : base()
-        {
-            ViewModel = viewModel;
-            _titleObserver = ViewModel.AddObserver("IconAndTitle", NSKeyValueObservingOptions.New, OnTitleChanged);
+        public PluginViewModel ViewModel { get; private set; }
 
-            Title = ViewModel.IconAndTitle;
+        private readonly BaristaApp _app;
+
+        private readonly PreferencesWindowFactory _preferencesWindowFactory;
+
+        public BaristaStatusBarItem(BaristaApp app, PreferencesWindowFactory preferencesWindowFactory)
+        {
+            _app = app;
+            _preferencesWindowFactory = preferencesWindowFactory;
         }
 
-        private void OnTitleChanged(NSObservedChange change)
+        private void UpdateTitle(string title, string color)
         {
+
             InvokeOnMainThread(() =>
             {
-                var title = new NSMutableAttributedString(ViewModel.IconAndTitle);
+                var nsTitle = new NSMutableAttributedString(title);
 
-                if (!string.IsNullOrEmpty(ViewModel.Color))
+                if (!string.IsNullOrEmpty(color))
                 {
-                    var color = ColorUtil.FromWebString(ViewModel.Color);
-                    title.AddAttribute(NSStringAttributeKey.ForegroundColor, color, new NSRange(0, ViewModel.IconAndTitle.Length));
+                    nsTitle.AddAttribute(
+                        NSStringAttributeKey.ForegroundColor,
+                        ColorUtil.FromWebString(color),
+                        new NSRange(0, title.Length)
+                    );
                 }
 
-                AttributedTitle = title;
+                AttributedTitle = nsTitle;
             });
         }
 
@@ -63,7 +70,10 @@ namespace Barista.MacOS.Views.StatusBar
                     AttributedTitle = titleAttribs,
                 };
 
-                if (item.Type != ItemType.Empty) nsMenuItem.Activated += (sender, e) => ViewModel.OnStatusItemClicked(item);
+                if (item.Type != ItemType.Empty)
+                {
+                    nsMenuItem.Activated += (sender, e) => OnStatusItemClicked(item);
+                }
 
                 if (item.Children.Count > 0)
                 {
@@ -77,10 +87,24 @@ namespace Barista.MacOS.Views.StatusBar
             menu.AddItem(NSMenuItem.SeparatorItem);
         }
 
+        private void OnStatusItemClicked(Item item) =>
+            _app.ExecuteAction(item);
+
+        private void OnRefreshAll() => _app.ExecuteAllPlugins();
+
+        private void OnOpenPreferences()
+        {
+            var controller = _preferencesWindowFactory.Create();
+            controller.Show();
+
+            NSApplication.SharedApplication.ActivateIgnoringOtherApps(true);
+            controller.Window.MakeKeyAndOrderFront(this);
+        }
+
+        private void OnExit() => NSApplication.SharedApplication.Terminate(NSApplication.SharedApplication);
+
         public override void OnMenuWillOpen(NSMenu _)
         {
-            var menuItems = new List<NSMenuItem>();
-
             foreach (var itemCollection in ViewModel.Items)
             {
                 AddItemsToMenu(itemCollection, Menu);
@@ -93,9 +117,9 @@ namespace Barista.MacOS.Views.StatusBar
 
             var baristaSubMenu = new BaristaSubmenuView()
             {
-                OnRefreshAllClicked = ViewModel.OnRefreshAll,
-                OnPreferencesClicked = ViewModel.OnOpenPreferences,
-                OnQuitClicked = ViewModel.OnExit
+                OnRefreshAllClicked = OnRefreshAll,
+                OnPreferencesClicked = OnOpenPreferences,
+                OnQuitClicked = OnExit
             };
 
             Menu.AddItem(baristaSubMenu);
@@ -106,12 +130,10 @@ namespace Barista.MacOS.Views.StatusBar
             Menu.RemoveAllItems();
         }
 
-        public override void Dispose()
+        public void OnUpdate(PluginViewModel viewModel)
         {
-            System.Diagnostics.Debug.WriteLine($"Disposing menu item for {ViewModel.Plugin.Name}");
-            _titleObserver.Dispose();
-            ViewModel.Dispose();
-            base.Dispose();
+            ViewModel = viewModel;
+            UpdateTitle(viewModel.TitleAndIcon, viewModel.Colour);
         }
     }
 }

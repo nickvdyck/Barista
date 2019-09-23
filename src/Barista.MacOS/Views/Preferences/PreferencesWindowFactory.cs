@@ -1,7 +1,6 @@
 using AppKit;
+using Barista.MacOS.Utils;
 using System.Collections.Generic;
-using DryIoc;
-using Barista.Common.DependencyInjection;
 
 namespace Barista.MacOS.Views.Preferences
 {

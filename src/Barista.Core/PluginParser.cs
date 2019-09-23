@@ -82,11 +82,6 @@ namespace Barista
             }
         }
 
-        // private const int DEFAULT_TIME_INTERVAL = 60;
-        // private const int ONE_MINUTE = 60;
-        // private const int ONE_HOUR = 60 * ONE_MINUTE;
-        // private const int ONE_DAY = 24 * ONE_HOUR;
-
         private static CronExpression ParseScheduleToCron(string schedule)
         {
             if (schedule.Length < 2) return Cron.Minutely();
@@ -117,15 +112,14 @@ namespace Barista
             }
         }
 
-        public static IReadOnlyCollection<IReadOnlyCollection<Item>> ParseExecution(string output, Plugin plugin)
+        public static ImmutableList<ImmutableList<Item>> ParseExecution(string output, string pluginName)
         {
             var chunks = output.Split(new[] { "---" }, StringSplitOptions.RemoveEmptyEntries);
 
             var itemBuilder = ImmutableList.CreateBuilder<ImmutableList<Item>>();
 
             var title = chunks.FirstOrDefault().Trim();
-            var titleItem = ParseItem(title, new List<Item>());
-            titleItem.Plugin = plugin;
+            var titleItem = ParseItem(title, new List<Item>(), pluginName);
             itemBuilder.Add(ImmutableList.Create(titleItem));
 
             foreach (var chunk in chunks.Skip(1))
@@ -139,14 +133,12 @@ namespace Barista
                     if (!line.StartsWith("--", StringComparison.CurrentCulture))
                     {
                         children = new List<Item>();
-                        var item = ParseItem(line, children);
-                        item.Plugin = plugin;
+                        var item = ParseItem(line, children, pluginName);
                         builder.Add(item);
                     }
                     else
                     {
-                        var item = ParseItem(line.Replace("--", ""), new List<Item>());
-                        item.Plugin = plugin;
+                        var item = ParseItem(line.Replace("--", ""), new List<Item>(), pluginName);
                         children.Add(item);
                     }
                 }
@@ -157,7 +149,7 @@ namespace Barista
             return itemBuilder.ToImmutableList();
         }
 
-        private static Item ParseItem(string line, List<Item> children)
+        private static Item ParseItem(string line, List<Item> children, string pluginName)
         {
             var parts = line.Split('|');
             var title = parts.FirstOrDefault();
@@ -166,6 +158,7 @@ namespace Barista
             var item = new Item
             {
                 OriginalTitle = title,
+                PluginName = pluginName,
                 Children = children,
             };
 

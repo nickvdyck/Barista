@@ -4,9 +4,9 @@ namespace Barista.Data
 {
     public class Item : ItemBase
     {
-        internal Plugin Plugin { get; set; }
-
         public IReadOnlyCollection<Item> Children { get; internal set; }
+
+        internal string PluginName { get; set; }
 
         public ItemType Type
         {

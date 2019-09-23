@@ -59,6 +59,12 @@
     <Reference Include="Cronos">
       <HintPath>..\..\packages\Cronos.0.7.0\lib\netstandard2.0\Cronos.dll</HintPath>
     </Reference>
+    <Reference Include="System.Reactive">
+      <HintPath>..\..\packages\System.Reactive.4.1.6\lib\netstandard2.0\System.Reactive.dll</HintPath>
+    </Reference>
+    <Reference Include="MediatR">
+      <HintPath>..\..\packages\MediatR.7.0.0\lib\netstandard2.0\MediatR.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
@@ -82,6 +88,7 @@
     <Folder Include="ViewModels\" />
     <Folder Include="Views\Preferences\" />
     <Folder Include="Views\StatusBar\" />
+    <Folder Include="Selectors\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -118,13 +125,13 @@
     <Compile Include="Views\Preferences\PreferencesWindowController.cs" />
     <Compile Include="Views\Preferences\PreferencesWindowFactory.cs" />
     <Compile Include="Views\StatusBar\BaristaSubMenuView.cs" />
-    <Compile Include="ViewModels\StatusBarViewModel.cs" />
-    <Compile Include="ViewModels\StatusItemViewModel.cs" />
     <Compile Include="Utils\MacFileSystemWatcher.cs" />
     <Compile Include="Utils\ColorUtil.cs" />
     <Compile Include="Views\StatusBar\BaristaStatusBar.cs" />
     <Compile Include="Views\StatusBar\BaristaStatusBarItem.cs" />
     <Compile Include="Views\StatusBar\StatusBarItem.cs" />
+    <Compile Include="Utils\ServiceProvider.cs" />
+    <Compile Include="Selectors\SelectPluginsWithExecutionResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Views\Preferences\GeneralView.xib" />
