@@ -1,9 +1,9 @@
 .PHONY: purge clean test
 .DEFAULT_GOAL := default
 
-MACOSSLN		:= Barista.MacOS.sln
-CORE			:= src/Barista.Core
-MACOS			:= src/Barista.MacOS
+MACOSSLN		:= Barista.sln
+MACOS			:= src/Barista
+SCHEDULER		:= src/Barista.Scheduler
 BUILD			:= .build
 TEST_CORE		:= test/Barista.Core.Tests
 CONFIGURATION	:= Debug
@@ -16,9 +16,8 @@ purge: clean
 	rm -rf $(BUILD)
 
 clean:
-	rm -rf $(CORE)/obj
+	rm -rf $(SCHEDULER)/obj
 	rm -rf $(MACOS)/obj
-	rm -rf $(TEST_CORE)/obj
 	msbuild $(MACOSSLN) /t:Clean
 
 restore:
@@ -34,7 +33,7 @@ test:
 	dotnet test $(TEST_CORE)
 
 install:
-	@open ./.build/bin/Barista.MacOS/Release/Barista-$(VERSION).pkg
+	@open ./.build/bin/Barista/Release/Barista-$(VERSION).pkg
 
 uninstall:
 	sudo rm -rf /Applications/Barista.app

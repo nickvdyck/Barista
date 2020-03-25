@@ -1,5 +1,31 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{9024285E-18CC-45C5-887A-060F2EDA371F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Barista", "src\Barista\Barista.csproj", "{04836B04-EF76-42F2-ABB2-582E97F103BF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{BF6FAD6A-69BF-4C45-943B-D5D1D2E2BDBE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Barista.Scheduler", "src\Barista.Scheduler\Barista.Scheduler.csproj", "{086C17E3-9100-4CCE-B1FF-65381C0EC6EF}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{04836B04-EF76-42F2-ABB2-582E97F103BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04836B04-EF76-42F2-ABB2-582E97F103BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04836B04-EF76-42F2-ABB2-582E97F103BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04836B04-EF76-42F2-ABB2-582E97F103BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{086C17E3-9100-4CCE-B1FF-65381C0EC6EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{086C17E3-9100-4CCE-B1FF-65381C0EC6EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{086C17E3-9100-4CCE-B1FF-65381C0EC6EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{086C17E3-9100-4CCE-B1FF-65381C0EC6EF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{04836B04-EF76-42F2-ABB2-582E97F103BF} = {9024285E-18CC-45C5-887A-060F2EDA371F}
+		{086C17E3-9100-4CCE-B1FF-65381C0EC6EF} = {9024285E-18CC-45C5-887A-060F2EDA371F}
+	EndGlobalSection
 EndGlobal
